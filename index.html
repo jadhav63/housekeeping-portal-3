@@ -1,128 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tombstone Grand Hotel – Housekeeping System</title>
-  <style>
-    :root {
-      --accent: #005ea0;
-      --text: #222;
-      --bg: #fff;
-      --border: #e5e7eb;
-      --running: #22c55e;
-      --idle: #9ca3af;
-      --arrival: #fff7e6;
-      --stayover: #ecfdf5;
-      --departure: #fef2f2;
-    }
-    html, body {
-      margin: 0;
-      padding: 0;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      height: 100%;
-    }
-    header {
-      background: var(--accent);
-      color: #fff;
-      padding: 16px 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    h1 {margin: 0; font-size: 1.5rem;}
-    #clock {font-weight: 600;}
-    main {padding: 20px;}
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tombstone Grand Hotel – Housekeeping Board</title>
+<style>
+:root {
+  --accent: #005ea0;
+  --text: #222;
+  --bg: #fff;
+  --border: #e5e7eb;
+  --running: #22c55e;
+  --idle: #9ca3af;
+  --arrival: #fff7e6;
+  --stayover: #ecfdf5;
+  --departure: #fef2f2;
+}
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+header {
+  background: var(--accent);
+  color: #fff;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+h1 {margin:0;font-size:1.4rem;}
+#clock {font-weight:600;}
+main {padding:20px;}
+table {
+  width:100%;
+  border-collapse:collapse;
+  font-size:0.95rem;
+}
+th,td {
+  border:1px solid var(--border);
+  padding:8px;
+  text-align:left;
+}
+th {background:#f3f4f6;}
+.status-arrival {background:var(--arrival);}
+.status-stayover {background:var(--stayover);}
+.status-departure {background:var(--departure);}
+.timer.running {color:var(--running);font-weight:600;}
+.timer.idle {color:var(--idle);}
+button {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+button:hover {background:#00447d;}
+#summary {
+  margin-top: 10px;
+  font-weight: 600;
+  background: #f9fafb;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 8px;
+}
 
-    /* Login */
-    #loginScreen {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background: linear-gradient(160deg, #f0f4f8, #dbeafe);
-    }
-    .login-box {
-      background: #fff;
-      padding: 30px 40px;
-      border-radius: 10px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-      width: 320px;
-      text-align: center;
-    }
-    .login-box h2 {margin-bottom: 20px; color: var(--accent);}
-    .login-box input {
-      width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 1rem;
-    }
-    .login-box button {
-      width: 100%;
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      padding: 10px;
-      font-size: 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    .login-box button:hover {background:#00447d;}
-    .error {color: red; font-size: 0.9rem; margin-top: 8px;}
-  </style>
+/* LOGIN */
+#loginScreen {
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  background:linear-gradient(160deg,#f0f4f8,#dbeafe);
+}
+.login-box {
+  background:#fff;
+  padding:30px 40px;
+  border-radius:10px;
+  box-shadow:0 8px 20px rgba(0,0,0,0.1);
+  width:320px;
+  text-align:center;
+}
+.login-box h2 {margin-bottom:20px;color:var(--accent);}
+.login-box input {
+  width:100%;
+  padding:10px;
+  margin:8px 0;
+  border:1px solid #ccc;
+  border-radius:6px;
+  font-size:1rem;
+}
+.login-box button {
+  width:100%;
+  background:var(--accent);
+  color:#fff;
+  border:none;
+  padding:10px;
+  font-size:1rem;
+  border-radius:6px;
+  cursor:pointer;
+  margin-top:10px;
+}
+.login-box button:hover {background:#00447d;}
+.error {color:red;font-size:0.9rem;margin-top:8px;}
+</style>
 </head>
 <body>
 
-  <!-- LOGIN SCREEN -->
-  <div id="loginScreen">
-    <div class="login-box">
-      <h2>Tombstone Grand Hotel</h2>
-      <input type="text" id="username" placeholder="Username" />
-      <input type="password" id="password" placeholder="Password" />
-      <button id="loginBtn">Login</button>
-      <div class="error" id="loginError"></div>
-    </div>
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <h2>Tombstone Grand Hotel</h2>
+    <input type="text" id="username" placeholder="Username" />
+    <input type="password" id="password" placeholder="Password" />
+    <button id="loginBtn">Login</button>
+    <div class="error" id="loginError"></div>
   </div>
+</div>
 
-  <!-- MAIN DASHBOARD -->
-  <div id="dashboard" style="display:none;">
-    <header>
-      <h1>Housekeeping Dashboard</h1>
-      <div id="clock">--:--:--</div>
-    </header>
-    <main>
-      <div id="userRole"></div>
-      <div id="controls"></div>
-      <table id="roomTable" border="1" cellspacing="0" cellpadding="6" width="100%">
-        <thead>
-          <tr>
-            <th>Room</th>
-            <th>Type</th>
-            <th>HK Status</th>
-            <th>Occupancy</th>
-            <th>Guest Status</th>
-            <th>Check-In</th>
-            <th>Check-Out</th>
-            <th>Order/Reason</th>
-            <th>Description</th>
-            <th>Notes</th>
-            <th>Timer</th>
-          </tr>
-        </thead>
-        <tbody id="roomBody"></tbody>
-      </table>
-      <div id="summary"></div>
-    </main>
-  </div>
+<!-- DASHBOARD -->
+<div id="dashboard" style="display:none;">
+  <header>
+    <h1>Housekeeping Board</h1>
+    <div id="clock">--:--:--</div>
+  </header>
+  <main>
+    <div id="userRole"></div>
+    <div id="controls"></div>
+    <table id="roomTable">
+      <thead>
+        <tr>
+          <th>Room</th>
+          <th>Type</th>
+          <th>HK Status</th>
+          <th>Occupancy</th>
+          <th>Guest Status</th>
+          <th>Notes</th>
+          <th>Timer</th>
+        </tr>
+      </thead>
+      <tbody id="roomBody"></tbody>
+    </table>
+    <div id="summary"></div>
+  </main>
+</div>
 
 <script>
-/* ====== LOGIN LOGIC ====== */
+/* === LOGIN === */
 const credentials = {
   manager: "admin2025",
   hilda: "hk101",
@@ -149,7 +177,7 @@ document.getElementById("loginBtn").addEventListener("click", () => {
   }
 });
 
-/* ===== CLOCK ===== */
+/* === CLOCK === */
 function updateClock() {
   const now = new Date();
   const h = String(now.getHours()).padStart(2, "0");
@@ -160,49 +188,44 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-/* ===== TABLE DISPLAY & LOGIC ===== */
+/* === TABLE & ROOMS === */
 function initDashboard() {
   const tbody = document.getElementById("roomBody");
   tbody.innerHTML = "";
 
-  // === PRELOADED ROOMS (60) ===
   const rooms = [];
   const types = ["RM2", "RM3", "AC1", "AC2", "AC3", "SU1"];
-  const statuses = ["Dirty", "Clean", "In Progress", "Inspected"];
-  const guestStatuses = ["Stay Over", "Departing", "Arriving", "Vacant"];
-
-  for (let f = 1; f <= 3; f++) {
+  const guestStatuses = ["Arriving", "Stay Over", "Departing", "Vacant"];
+  const hkStatuses = ["Dirty", "In Progress", "Clean", "Inspected"];
+  for (let floor = 1; floor <= 3; floor++) {
     for (let r = 0; r < 20; r++) {
-      const num = f * 100 + r;
+      const num = floor * 100 + r;
       rooms.push({
         room: num,
         type: types[r % types.length],
-        hkStatus: statuses[r % statuses.length],
-        occupancy: r % 3 === 0 ? "Occupied" : "Vacant",
+        hkStatus: hkStatuses[r % hkStatuses.length],
+        occupancy: r % 2 ? "Occupied" : "Vacant",
         guestStatus: guestStatuses[r % guestStatuses.length],
-        checkin: "Oct " + (10 + (r % 5)),
-        checkout: "Oct " + (15 + (r % 5)),
-        reason: "",
-        description: "",
         notes: ""
       });
     }
   }
 
-  // === FILTER ROOMS BY USER ===
   let filtered = rooms;
   if (currentUser !== "manager") {
     const assignMap = {
-      hilda: [100, 101, 102, 103, 104, 105, 106, 107, 108, 109],
-      johana: [110, 111, 112, 113, 114, 115, 116, 117, 118, 119],
-      kennedy: [200, 201, 202, 203, 204, 205, 206, 207, 208, 209],
-      angie: [210, 211, 212, 213, 214, 215, 216, 217, 218, 219],
-      mayte: [300, 301, 302, 303, 304, 305, 306, 307, 308, 309]
+      hilda: [100,101,102,103,104,105,106,107,108,109],
+      johana: [110,111,112,113,114,115,116,117,118,119],
+      kennedy: [200,201,202,203,204,205,206,207,208,209],
+      angie: [210,211,212,213,214,215,216,217,218,219],
+      mayte: [220,221,222,223,224,225,226,227,228,229]
     };
     filtered = rooms.filter(r => assignMap[currentUser].includes(r.room));
+  } else {
+    document.getElementById("controls").innerHTML = '<button id="exportBtn">Export CSV</button>';
+    document.getElementById("exportBtn").addEventListener("click", exportCSV);
   }
 
-  // === BUILD TABLE ===
   filtered.forEach((r, i) => {
     const tr = document.createElement("tr");
     let rowClass = "";
@@ -210,36 +233,32 @@ function initDashboard() {
     else if (/stay/i.test(r.guestStatus)) rowClass = "status-stayover";
     else if (/depart/i.test(r.guestStatus)) rowClass = "status-departure";
     tr.className = rowClass;
-
     tr.innerHTML = `
       <td>${r.room}</td>
       <td>${r.type}</td>
       <td>
         <select class="hkStatus">
-          <option ${r.hkStatus === "Dirty" ? "selected" : ""}>Dirty</option>
-          <option ${r.hkStatus === "In Progress" ? "selected" : ""}>In Progress</option>
-          <option ${r.hkStatus === "Clean" ? "selected" : ""}>Clean</option>
-          <option ${r.hkStatus === "Inspected" ? "selected" : ""}>Inspected</option>
+          <option ${r.hkStatus==="Dirty"?"selected":""}>Dirty</option>
+          <option ${r.hkStatus==="In Progress"?"selected":""}>In Progress</option>
+          <option ${r.hkStatus==="Clean"?"selected":""}>Clean</option>
+          <option ${r.hkStatus==="Inspected"?"selected":""}>Inspected</option>
         </select>
       </td>
       <td>${r.occupancy}</td>
       <td>${r.guestStatus}</td>
-      <td>${r.checkin}</td>
-      <td>${r.checkout}</td>
-      <td>${r.reason}</td>
-      <td>${r.description}</td>
       <td contenteditable="true">${r.notes}</td>
       <td class="timer idle">00:00:00</td>
     `;
     tbody.appendChild(tr);
   });
 
-  attachHKListeners();
+  attachListeners();
   updateSummary();
 }
 
-/* ===== HK STATUS CHANGE LISTENERS ===== */
-function attachHKListeners() {
+/* === HK STATUS CHANGE + TIMER === */
+let timers = {};
+function attachListeners() {
   document.querySelectorAll(".hkStatus").forEach((sel, idx) => {
     sel.addEventListener("change", e => {
       const val = e.target.value;
@@ -250,9 +269,6 @@ function attachHKListeners() {
     });
   });
 }
-
-/* ===== TIMER FUNCTIONS ===== */
-let timers = {};
 function startTimer(el, idx) {
   if (timers[idx]) return;
   const start = Date.now();
@@ -274,7 +290,21 @@ function stopTimer(el, idx) {
   el.classList.add("idle");
 }
 
-/* ===== SUMMARY BAR ===== */
+/* === CSV EXPORT === */
+function exportCSV() {
+  let csv = "Room,Type,HK Status,Occupancy,Guest Status,Notes\n";
+  document.querySelectorAll("#roomBody tr").forEach(row => {
+    const cells = [...row.children].map(td => td.innerText.replace(/,/g,""));
+    csv += cells.join(",") + "\n";
+  });
+  const blob = new Blob([csv], {type:"text/csv"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "housekeeping_log.csv";
+  a.click();
+}
+
+/* === SUMMARY BAR === */
 function updateSummary() {
   const rows = document.querySelectorAll("#roomBody tr");
   let arrivals = 0, stays = 0, deps = 0;
@@ -287,62 +317,6 @@ function updateSummary() {
   document.getElementById("summary").innerText =
     `Total: ${rows.length} | Arrivals: ${arrivals} | Stayovers: ${stays} | Departures: ${deps}`;
 }
-
-/* ===== INIT ON LOAD ===== */
-window.onload = () => {
-  updateClock();
-  setInterval(updateClock, 1000);
-};
 </script>
-  
-<style>
-body {
-  background:#fff;
-  color:#222;
-  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  margin:0;
-}
-header {
-  background:#005ea0;
-  color:#fff;
-  padding:10px 20px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-h1 {margin:0;font-size:1.4rem;}
-#clock {font-weight:600;}
-main {padding:15px;}
-button,select {
-  border:1px solid #ccc;
-  border-radius:5px;
-  padding:6px 10px;
-  cursor:pointer;
-}
-button:hover {background:#005ea0;color:#fff;}
-table {
-  width:100%;
-  border-collapse:collapse;
-  font-size:0.95rem;
-}
-th,td {
-  border:1px solid #e5e7eb;
-  padding:8px;
-}
-th {background:#f3f4f6;}
-.status-arrival {background:#fff7e6;}
-.status-stayover {background:#ecfdf5;}
-.status-departure {background:#fef2f2;}
-.timer.running {color:#22c55e;font-weight:600;}
-.timer.idle {color:#9ca3af;}
-#summary {
-  margin-top:10px;
-  font-weight:600;
-  padding:8px;
-  background:#f9fafb;
-  border-radius:6px;
-  border:1px solid #eee;
-}
-</style>
+</body>
 </html>
-
