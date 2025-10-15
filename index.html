@@ -140,7 +140,8 @@ button:hover {background:#00447d;}
           <th>Occupancy</th>
           <th>Guest Status</th>
           <th>Notes</th>
-          <th>Timer</th>
+<th>Attendant</th>
+<th>Timer</th>
         </tr>
       </thead>
       <tbody id="roomBody"></tbody>
@@ -276,19 +277,6 @@ rooms.forEach((r, i) => {
   r.notes = "";
 });
 
-
-// Fill remaining default values
-const guestStatuses = ["Arriving", "Stay Over", "Departing", "Vacant"];
-const hkStatuses = ["Dirty", "In Progress", "Clean", "Inspected"];
-
-rooms.forEach((r, i) => {
-  r.hkStatus = hkStatuses[i % hkStatuses.length];
-  r.occupancy = i % 2 ? "Occupied" : "Vacant";
-  r.guestStatus = guestStatuses[i % guestStatuses.length];
-  r.notes = "";
-});
-
-
   let filtered = rooms;
   if (currentUser !== "manager") {
     const assignMap = {
@@ -398,5 +386,6 @@ function updateSummary() {
 </script>
 </body>
 </html>
+
 
 
