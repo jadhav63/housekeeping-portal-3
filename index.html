@@ -15,6 +15,7 @@
       --arrival: #fff7e6;
       --stayover: #ecfdf5;
       --departure: #fef2f2;
+      --highlight: #e0f2fe;
     }
     html,body {
       margin:0;
@@ -31,18 +32,23 @@
       justify-content:space-between;
       align-items:center;
     }
-    h1 {margin:0;font-size:1.6rem;}
+    h1 {margin:0;font-size:1.5rem;}
     #clock {font-weight:600;}
     main {padding:20px;}
-    .controls {
+    .controls, .add-room {
       display:flex;
       gap:10px;
       align-items:center;
       margin-bottom:12px;
       flex-wrap:wrap;
     }
-    input[type=file]{font-size:0.9rem;}
-    .btn{
+    input, select {
+      padding:6px;
+      border:1px solid var(--border);
+      border-radius:4px;
+      font-size:0.9rem;
+    }
+    .btn {
       background:var(--accent);
       color:#fff;
       border:none;
@@ -51,25 +57,26 @@
       cursor:pointer;
       font-size:0.9rem;
     }
-    .btn:hover{background:#00447d;}
-    table{
+    .btn:hover {background:#00447d;}
+    table {
       width:100%;
       border-collapse:collapse;
       font-size:0.95rem;
     }
-    th,td{
+    th,td {
       border:1px solid var(--border);
       padding:8px 6px;
       text-align:left;
     }
-    th{background:#f3f4f6;}
+    th {background:#f3f4f6;}
     tr:nth-child(even){background:#fafafa;}
-    .status-arrival{background:var(--arrival);}
-    .status-stayover{background:var(--stayover);}
-    .status-departure{background:var(--departure);}
-    .timer.running{color:var(--running);font-weight:600;}
-    .timer.idle{color:var(--idle);}
-    .summary{
+    .status-arrival {background:var(--arrival);}
+    .status-stayover {background:var(--stayover);}
+    .status-departure {background:var(--departure);}
+    .highlighted {border-left:5px solid var(--accent); background:var(--highlight);}
+    .timer.running {color:var(--running);font-weight:600;}
+    .timer.idle {color:var(--idle);}
+    .summary {
       margin-top:10px;
       font-weight:600;
       font-size:0.95rem;
@@ -82,17 +89,50 @@
     <div id="clock">--:--:--</div>
   </header>
   <main>
-    <div class="controls">
-      <input type="file" id="pdfInput" accept=".pdf">
-      <button class="btn" id="exportBtn">Export CSV</button>
-      <span id="attendantLabel"></span>
+    <div class="add-room">
+      <input type="text" id="roomNum" placeholder="Room #" size="5" />
+      <select id="roomType">
+        <option value="">Type</option>
+        <option>RM2</option>
+        <option>RM3</option>
+        <option>AC1</option>
+        <option>AC2</option>
+        <option>AC3</option>
+        <option>SU1</option>
+      </select>
+      <select id="guestStatus">
+        <option value="">Guest Status</option>
+        <option>Arrival</option>
+        <option>Stayover</option>
+        <option>Departure</option>
+      </select>
+      <select id="hkStatus">
+        <option>Dirty</option>
+        <option>In Progress</option>
+        <option>Clean</option>
+        <option>Inspected</option>
+      </select>
+      <select id="attendant">
+        <option value="">Attendant</option>
+        <option>Hilda</option>
+        <option>Jonnah</option>
+        <option>Kennedy</option>
+        <option>Angie</option>
+        <option>Mayte</option>
+      </select>
+      <button class="btn" id="addRoomBtn">+ Add Room</button>
     </div>
+
+    <div class="controls">
+      <button class="btn" id="exportBtn">Export CSV</button>
+      <span id="viewLabel"></span>
+    </div>
+
     <table id="roomsTable">
       <thead>
         <tr>
           <th>Room</th>
           <th>Type</th>
-          <th>Occupancy</th>
           <th>Guest Status</th>
           <th>HK Status</th>
           <th>Attendant</th>
@@ -101,179 +141,149 @@
       </thead>
       <tbody></tbody>
     </table>
+
     <div class="summary" id="summaryTotals"></div>
   </main>
-<script>
-/* === Clock === */
-function updateClock(){
-  const now=new Date();
-  const h=String(now.getHours()).padStart(2,"0");
-  const m=String(now.getMinutes()).padStart(2,"0");
-  const s=String(now.getSeconds()).padStart(2,"0");
-  document.getElementById("clock").textContent=`${h}:${m}:${s}`;
-}
-setInterval(updateClock,1000);updateClock();
-/* === PDF Upload & SynXis Parsing === */
-const pdfInput = document.getElementById('pdfInput');
-const roomsTable = document.querySelector('#roomsTable tbody');
-const attendantLabel = document.getElementById('attendantLabel');
-const summaryTotals = document.getElementById('summaryTotals');
-const exportBtn = document.getElementById('exportBtn');
 
-let data = [];
-let timers = {};
+  <script>
+  const tableBody = document.querySelector('#roomsTable tbody');
+  const addRoomBtn = document.getElementById('addRoomBtn');
+  const exportBtn = document.getElementById('exportBtn');
+  const summaryTotals = document.getElementById('summaryTotals');
+  const viewLabel = document.getElementById('viewLabel');
 
-/* --- Handle PDF Upload --- */
-pdfInput.addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if(!file) return;
-  const pdfjsLib = await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.mjs');
-  const buffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({data: buffer}).promise;
-  let fullText = "";
-  for(let i=1;i<=pdf.numPages;i++){
-    const page = await pdf.getPage(i);
-    const txt = await page.getTextContent();
-    const str = txt.items.map(it=>it.str).join(" ");
-    fullText += str + "\n";
-  }
-  parseSynxis(fullText);
-});
-
-/* --- Parse the SynXis text structure --- */
-function parseSynxis(text){
-  data = [];
+  let data = [];
+  let timers = {};
   const attendantParam = new URLSearchParams(window.location.search).get('attendant');
-  const attendants = [...new Set((text.match(/(Hilda|Johana|Kennedy|Mayte|Angie|Elvia)/gi)||[]))];
-  let lines = text.split(/\s(?=\d{3}\s)/).map(l=>l.trim()).filter(l=>l.match(/^\d{3}/));
 
-  for(const line of lines){
-    const parts = line.split(/\s+/);
-    const room = parts[0];
-    const type = parts[1]||"";
-    const hkStatus = parts.find(p=>/Dirty|Clean/i.test(p))||"";
-    const occupancy = parts.find(p=>/Vacant|Occupied/i.test(p))||"";
-    const guestStatRaw = line.match(/Stay Over|Departing|Arriving|Checked-out/i);
-    const guestStatus = guestStatRaw ? guestStatRaw[0] : "";
-    const attendant = attendants.find(a=>line.toLowerCase().includes(a.toLowerCase())) || "Unassigned";
-    data.push({room,type,occupancy,guestStatus,hkStatus,attendant});
+  /* Clock */
+  function updateClock(){
+    const now=new Date();
+    document.getElementById("clock").textContent = now.toLocaleTimeString();
   }
+  setInterval(updateClock,1000);updateClock();
 
-  // Filter by attendant if ?attendant= is set
-  if(attendantParam){
-    const name = attendantParam.charAt(0).toUpperCase()+attendantParam.slice(1).toLowerCase();
-    attendantLabel.textContent = `Attendant View – ${name}`;
-    data = data.filter(r=>r.attendant.toLowerCase()===attendantParam.toLowerCase());
-  } else {
-    attendantLabel.textContent = "Manager View – All Rooms";
-  }
+  /* Add Room */
+  addRoomBtn.addEventListener('click', () => {
+    const room = document.getElementById('roomNum').value.trim();
+    const type = document.getElementById('roomType').value;
+    const guestStatus = document.getElementById('guestStatus').value;
+    const hkStatus = document.getElementById('hkStatus').value;
+    const attendant = document.getElementById('attendant').value;
+    if(!room) return alert('Enter room number');
 
-  renderTable();
-}
-/* === Render Table & Live Timers === */
-function renderTable(){
-  roomsTable.innerHTML = "";
-  let totals = {arrival:0, stay:0, depart:0};
-  data.forEach((r,i)=>{
-    const tr=document.createElement("tr");
-    tr.dataset.index=i;
-
-    // Row coloring
-    if(/arrival/i.test(r.guestStatus)) tr.classList.add("status-arrival"), totals.arrival++;
-    else if(/stay/i.test(r.guestStatus)) tr.classList.add("status-stayover"), totals.stay++;
-    else if(/depart/i.test(r.guestStatus)) tr.classList.add("status-departure"), totals.depart++;
-
-    tr.innerHTML = `
-      <td>${r.room}</td>
-      <td>${r.type}</td>
-      <td>${r.occupancy}</td>
-      <td>${r.guestStatus}</td>
-      <td>
-        <select class="hkStatus">
-          <option ${/Dirty/i.test(r.hkStatus)?"selected":""}>Dirty</option>
-          <option ${/In Progress/i.test(r.hkStatus)?"selected":""}>In Progress</option>
-          <option ${/Clean/i.test(r.hkStatus)?"selected":""}>Clean</option>
-          <option ${/Inspected/i.test(r.hkStatus)?"selected":""}>Inspected</option>
-        </select>
-      </td>
-      <td>${r.attendant}</td>
-      <td class="timer idle">00:00:00</td>
-    `;
-    roomsTable.appendChild(tr);
+    data.push({room, type, guestStatus, hkStatus, attendant});
+    renderTable();
+    document.querySelectorAll('.add-room input, .add-room select').forEach(e=>e.value="");
   });
 
-  // update summary
-  summaryTotals.textContent = `Total Rooms: ${data.length} | Arrivals: ${totals.arrival} | Stay Overs: ${totals.stay} | Departures: ${totals.depart}`;
+  /* Render Table */
+  function renderTable(){
+    tableBody.innerHTML = "";
+    let totals = {arrival:0, stay:0, depart:0};
+    data.forEach((r,i)=>{
+      const tr=document.createElement('tr');
+      tr.dataset.index=i;
+      if(/arrival/i.test(r.guestStatus)) tr.classList.add('status-arrival'), totals.arrival++;
+      else if(/stay/i.test(r.guestStatus)) tr.classList.add('status-stayover'), totals.stay++;
+      else if(/depart/i.test(r.guestStatus)) tr.classList.add('status-departure'), totals.depart++;
 
-  // Attach listeners
-  document.querySelectorAll(".hkStatus").forEach(sel=>{
-    sel.addEventListener("change",e=>{
-      const tr=e.target.closest("tr");
-      const idx=tr.dataset.index;
-      const timerEl=tr.querySelector(".timer");
-      const val=e.target.value;
-      data[idx].hkStatus=val;
-      if(val==="In Progress") startTimer(timerEl,idx);
-      else if(["Clean","Inspected"].includes(val)) stopTimer(timerEl,idx);
+      if(attendantParam && r.attendant.toLowerCase()===attendantParam.toLowerCase())
+        tr.classList.add('highlighted');
+
+      tr.innerHTML = `
+        <td>${r.room}</td>
+        <td>${r.type}</td>
+        <td>${r.guestStatus}</td>
+        <td>
+          <select class="hkStatus">
+            <option ${r.hkStatus==='Dirty'?'selected':''}>Dirty</option>
+            <option ${r.hkStatus==='In Progress'?'selected':''}>In Progress</option>
+            <option ${r.hkStatus==='Clean'?'selected':''}>Clean</option>
+            <option ${r.hkStatus==='Inspected'?'selected':''}>Inspected</option>
+          </select>
+        </td>
+        <td>${r.attendant}</td>
+        <td class="timer idle">00:00:00</td>`;
+      tableBody.appendChild(tr);
     });
-  });
-}
 
-/* === Timer Logic === */
-function startTimer(el,idx){
-  if(timers[idx]) return; // already running
-  const start=Date.now();
-  el.classList.remove("idle");
-  el.classList.add("running");
-  timers[idx]=setInterval(()=>{
-    const diff=Date.now()-start;
-    const h=String(Math.floor(diff/3600000)).padStart(2,"0");
-    const m=String(Math.floor((diff%3600000)/60000)).padStart(2,"0");
-    const s=String(Math.floor((diff%60000)/1000)).padStart(2,"0");
-    el.textContent=`${h}:${m}:${s}`;
-  },1000);
-}
-
-function stopTimer(el,idx){
-  if(!timers[idx]) return;
-  clearInterval(timers[idx]);
-  timers[idx]=null;
-  el.classList.remove("running");
-  el.classList.add("idle");
-}
-/* === CSV Export === */
-exportBtn.addEventListener("click",()=>{
-  if(data.length===0){alert("No data to export.");return;}
-  let csv="Room,Type,Occupancy,Guest Status,HK Status,Attendant\n";
-  data.forEach(r=>{
-    csv+=`${r.room},${r.type},${r.occupancy},${r.guestStatus},${r.hkStatus},${r.attendant}\n`;
-  });
-  const blob=new Blob([csv],{type:"text/csv"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;a.download="housekeeping_log.csv";
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
-});
-
-/* === Daily Reset at 6 AM === */
-function checkReset(){
-  const last=localStorage.getItem("lastReset");
-  const now=new Date();
-  const today=now.toDateString();
-  const hr=now.getHours();
-  if(last!==today && hr>=6){
-    localStorage.clear();
-    localStorage.setItem("lastReset",today);
-    data=[];timers={};
-    roomsTable.innerHTML="";
-    summaryTotals.textContent="";
-    console.log("Daily reset complete");
+    summaryTotals.textContent = `Total: ${data.length} | Arrivals: ${totals.arrival} | Stayovers: ${totals.stay} | Departures: ${totals.depart}`;
+    attachHandlers();
   }
-}
-setInterval(checkReset,60000);
-checkReset();
 
-/* === End of Script === */
-</script>
+  /* HK Status change + Timer */
+  function attachHandlers(){
+    document.querySelectorAll('.hkStatus').forEach(sel=>{
+      sel.addEventListener('change',e=>{
+        const tr=e.target.closest('tr');
+        const idx=tr.dataset.index;
+        const val=e.target.value;
+        const timerEl=tr.querySelector('.timer');
+        data[idx].hkStatus=val;
+        if(val==='In Progress') startTimer(timerEl,idx);
+        else if(['Clean','Inspected'].includes(val)) stopTimer(timerEl,idx);
+      });
+    });
+  }
+
+  function startTimer(el,idx){
+    if(timers[idx]) return;
+    const start=Date.now();
+    el.classList.remove('idle'); el.classList.add('running');
+    timers[idx]=setInterval(()=>{
+      const diff=Date.now()-start;
+      const h=String(Math.floor(diff/3600000)).padStart(2,'0');
+      const m=String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
+      const s=String(Math.floor((diff%60000)/1000)).padStart(2,'0');
+      el.textContent=`${h}:${m}:${s}`;
+    },1000);
+  }
+  function stopTimer(el,idx){
+    if(!timers[idx]) return;
+    clearInterval(timers[idx]);
+    timers[idx]=null;
+    el.classList.remove('running'); el.classList.add('idle');
+  }
+
+  /* Export CSV */
+  exportBtn.addEventListener('click',()=>{
+    if(data.length===0) return alert("No data to export");
+    let csv="Room,Type,Guest Status,HK Status,Attendant\n";
+    data.forEach(r=>{
+      csv+=`${r.room},${r.type},${r.guestStatus},${r.hkStatus},${r.attendant}\n`;
+    });
+    const blob=new Blob([csv],{type:"text/csv"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;a.download="housekeeping_log.csv";
+    document.body.appendChild(a);a.click();a.remove();
+  });
+
+  /* Reset at 6 AM */
+  function checkReset(){
+    const now=new Date();
+    const hr=now.getHours();
+    const last=localStorage.getItem("lastReset");
+    const today=now.toDateString();
+    if(last!==today && hr>=6){
+      localStorage.clear();
+      localStorage.setItem("lastReset",today);
+      data=[];timers={};
+      tableBody.innerHTML="";
+      summaryTotals.textContent="";
+    }
+  }
+  setInterval(checkReset,60000);
+  checkReset();
+
+  /* Label view */
+  if(attendantParam){
+    const name=attendantParam.charAt(0).toUpperCase()+attendantParam.slice(1).toLowerCase();
+    viewLabel.textContent=`Attendant View – ${name}`;
+  } else {
+    viewLabel.textContent="Manager View – All Rooms";
+  }
+  </script>
 </body>
 </html>
