@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tombstone Grand Hotel – Housekeeping Board</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #222;
+      --accent: #0078d7;
+      --running: #22c55e;
+      --idle: #9ca3af;
+    }
+    html, body {
+      margin: 0; padding: 0;
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    header {
+      background: var(--accent);
+      color: #fff;
+      padding: 16px 24px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    h1 { font-size: 1.5rem; margin: 0; }
+    main { padding: 16px; }
+
+    .controls { margin-bottom: 20px; display: flex; gap: 12px; align-items: center; }
+    input[type=file] { font-size: 0.9rem; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th { background: #f3f4f6; }
+    tr:nth-child(even) { background: #f9fafb; }
+
+    .status-arrival { background-color: #fff7e6; }   /* gold tint */
+    .status-stayover { background-color: #ecfdf5; }  /* light green */
+    .status-departure { background-color: #fef2f2; } /* light red */
+    .timer.running { color: var(--running); font-weight: 600; }
+    .timer.idle { color: var(--idle); }
+    .btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .btn:hover { background: #005ea0; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Tombstone Grand Hotel – Housekeeping Board</h1>
+  <div id="clock"></div>
+</header>
+<main>
+  <div class="controls">
+    <input type="file" id="pdfInput" accept=".pdf">
+    <button class="btn" id="exportBtn">Export CSV</button>
+    <span id="attendantLabel"></span>
+  </div>
+
+  <table id="roomsTable">
+    <thead>
+      <tr>
+        <th>Room</th>
+        <th>Type</th>
+        <th>Guest Status</th>
+        <th>HK Status</th>
+        <th>Arrival</th>
+        <th>Stayover Due</th>
+        <th>Timer</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</main>
+<script>
+  /* === Clock === */
+  function updateClock(){
+    const now = new Date();
+    const h = now.getHours().toString().padStart(2,"0");
+    const m = now.getMinutes().toString().padStart(2,"0");
+    const s = now.getSeconds().toString().padStart(2,"0");
+    document.getElementById("clock").textContent = `${h}:${m}:${s}`;
+  }
+  setInterval(updateClock,1000); updateClock();
