@@ -193,23 +193,89 @@ function initDashboard() {
   const tbody = document.getElementById("roomBody");
   tbody.innerHTML = "";
 
-  const rooms = [];
-  const types = ["RM2", "RM3", "AC1", "AC2", "AC3", "SU1"];
-  const guestStatuses = ["Arriving", "Stay Over", "Departing", "Vacant"];
-  const hkStatuses = ["Dirty", "In Progress", "Clean", "Inspected"];
-  for (let floor = 1; floor <= 3; floor++) {
-    for (let r = 0; r < 20; r++) {
-      const num = floor * 100 + r;
-      rooms.push({
-        room: num,
-        type: types[r % types.length],
-        hkStatus: hkStatuses[r % hkStatuses.length],
-        occupancy: r % 2 ? "Occupied" : "Vacant",
-        guestStatus: guestStatuses[r % guestStatuses.length],
-        notes: ""
-      });
-    }
-  }
+ const rooms = [
+  // --- AC1 ---
+  { room: 116, type: "AC1" },
+
+  // --- AC2 ---
+  { room: 133, type: "AC2" },
+  { room: 135, type: "AC2" },
+
+  // --- AC3 ---
+  { room: 105, type: "AC3" },
+
+  // --- RM1 ---
+  { room: 137, type: "RM1" },
+  { room: 223, type: "RM1" },
+  { room: 225, type: "RM1" },
+  { room: 227, type: "RM1" },
+  { room: 229, type: "RM1" },
+
+  // --- RM2 ---
+  { room: 100, type: "RM2" },
+  { room: 102, type: "RM2" },
+  { room: 103, type: "RM2" },
+  { room: 104, type: "RM2" },
+  { room: 106, type: "RM2" },
+  { room: 107, type: "RM2" },
+  { room: 108, type: "RM2" },
+  { room: 109, type: "RM2" },
+  { room: 110, type: "RM2" },
+  { room: 111, type: "RM2" },
+  { room: 119, type: "RM2" },
+  { room: 120, type: "RM2" },
+  { room: 122, type: "RM2" },
+  { room: 129, type: "RM2" },
+  { room: 131, type: "RM2" },
+  { room: 200, type: "RM2" },
+  { room: 202, type: "RM2" },
+  { room: 203, type: "RM2" },
+  { room: 204, type: "RM2" },
+  { room: 205, type: "RM2" },
+  { room: 206, type: "RM2" },
+  { room: 207, type: "RM2" },
+  { room: 208, type: "RM2" },
+  { room: 209, type: "RM2" },
+  { room: 210, type: "RM2" },
+  { room: 211, type: "RM2" },
+  { room: 214, type: "RM2" },
+  { room: 216, type: "RM2" },
+  { room: 218, type: "RM2" },
+  { room: 219, type: "RM2" },
+  { room: 221, type: "RM2" },
+  { room: 224, type: "RM2" },
+  { room: 226, type: "RM2" },
+  { room: 228, type: "RM2" },
+  { room: 230, type: "RM2" },
+  { room: 233, type: "RM2" },
+  { room: 235, type: "RM2" },
+  { room: 237, type: "RM2" },
+
+  // --- RM3 ---
+  { room: 101, type: "RM3" },
+  { room: 121, type: "RM3" },
+  { room: 123, type: "RM3" },
+  { room: 125, type: "RM3" },
+  { room: 127, type: "RM3" },
+  { room: 201, type: "RM3" },
+  { room: 222, type: "RM3" },
+  { room: 239, type: "RM3" },
+
+  // --- SU1 ---
+  { room: 212, type: "SU1" }
+];
+
+// Fill remaining default values
+const guestStatuses = ["Arriving", "Stay Over", "Departing", "Vacant"];
+const hkStatuses = ["Dirty", "In Progress", "Clean", "Inspected"];
+
+rooms.forEach((r, i) => {
+  r.hkStatus = hkStatuses[i % hkStatuses.length];
+  r.occupancy = i % 2 ? "Occupied" : "Vacant";
+  r.guestStatus = guestStatuses[i % guestStatuses.length];
+  r.notes = "";
+});
+
 
   let filtered = rooms;
   if (currentUser !== "manager") {
@@ -320,3 +386,4 @@ function updateSummary() {
 </script>
 </body>
 </html>
+
