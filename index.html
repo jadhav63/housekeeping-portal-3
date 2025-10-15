@@ -137,12 +137,12 @@ document.getElementById("loginBtn").addEventListener("click", () => {
   const u = document.getElementById("username").value.trim().toLowerCase();
   const p = document.getElementById("password").value.trim();
   const err = document.getElementById("loginError");
-  if(credentials[u] && credentials[u] === p){
+  if (credentials[u] && credentials[u] === p) {
     currentUser = u;
-    document.getElementById("loginScreen").style.display="none";
-    document.getElementById("dashboard").style.display="block";
-    document.getElementById("userRole").innerHTML = 
-      `<h2>Welcome, ${u.charAt(0).toUpperCase()+u.slice(1)}</h2>`;
+    document.getElementById("loginScreen").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+    document.getElementById("userRole").innerHTML =
+      `<h2>Welcome, ${u.charAt(0).toUpperCase() + u.slice(1)}</h2>`;
     initDashboard();
   } else {
     err.textContent = "Invalid username or password.";
@@ -150,30 +150,61 @@ document.getElementById("loginBtn").addEventListener("click", () => {
 });
 
 /* ===== CLOCK ===== */
-function updateClock(){
-  const now=new Date();
-  const h=String(now.getHours()).padStart(2,"0");
-  const m=String(now.getMinutes()).padStart(2,"0");
-  const s=String(now.getSeconds()).padStart(2,"0");
-  document.getElementById("clock").textContent=`${h}:${m}:${s}`;
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2, "0");
+  const m = String(now.getMinutes()).padStart(2, "0");
+  const s = String(now.getSeconds()).padStart(2, "0");
+  document.getElementById("clock").textContent = `${h}:${m}:${s}`;
 }
-setInterval(updateClock,1000); updateClock();
+setInterval(updateClock, 1000);
+updateClock();
 
-/* ===== Placeholder for next parts ===== */
-function initDashboard(){
-  // room data, timers, logic to come in Parts 2-4
-}
-</script>
 /* ===== TABLE DISPLAY & LOGIC ===== */
 function initDashboard() {
   const tbody = document.getElementById("roomBody");
   tbody.innerHTML = "";
 
-  // auto-fill room data into table
-  rooms.forEach((r, i) => {
-    const tr = document.createElement("tr");
+  // === PRELOADED ROOMS (60) ===
+  const rooms = [];
+  const types = ["RM2", "RM3", "AC1", "AC2", "AC3", "SU1"];
+  const statuses = ["Dirty", "Clean", "In Progress", "Inspected"];
+  const guestStatuses = ["Stay Over", "Departing", "Arriving", "Vacant"];
 
-    // row color based on guest status
+  for (let f = 1; f <= 3; f++) {
+    for (let r = 0; r < 20; r++) {
+      const num = f * 100 + r;
+      rooms.push({
+        room: num,
+        type: types[r % types.length],
+        hkStatus: statuses[r % statuses.length],
+        occupancy: r % 3 === 0 ? "Occupied" : "Vacant",
+        guestStatus: guestStatuses[r % guestStatuses.length],
+        checkin: "Oct " + (10 + (r % 5)),
+        checkout: "Oct " + (15 + (r % 5)),
+        reason: "",
+        description: "",
+        notes: ""
+      });
+    }
+  }
+
+  // === FILTER ROOMS BY USER ===
+  let filtered = rooms;
+  if (currentUser !== "manager") {
+    const assignMap = {
+      hilda: [100, 101, 102, 103, 104, 105, 106, 107, 108, 109],
+      johana: [110, 111, 112, 113, 114, 115, 116, 117, 118, 119],
+      kennedy: [200, 201, 202, 203, 204, 205, 206, 207, 208, 209],
+      angie: [210, 211, 212, 213, 214, 215, 216, 217, 218, 219],
+      mayte: [300, 301, 302, 303, 304, 305, 306, 307, 308, 309]
+    };
+    filtered = rooms.filter(r => assignMap[currentUser].includes(r.room));
+  }
+
+  // === BUILD TABLE ===
+  filtered.forEach((r, i) => {
+    const tr = document.createElement("tr");
     let rowClass = "";
     if (/arrival/i.test(r.guestStatus)) rowClass = "status-arrival";
     else if (/stay/i.test(r.guestStatus)) rowClass = "status-stayover";
@@ -185,26 +216,26 @@ function initDashboard() {
       <td>${r.type}</td>
       <td>
         <select class="hkStatus">
-          <option ${r.hkStatus==="Dirty"?"selected":""}>Dirty</option>
-          <option ${r.hkStatus==="In Progress"?"selected":""}>In Progress</option>
-          <option ${r.hkStatus==="Clean"?"selected":""}>Clean</option>
-          <option ${r.hkStatus==="Inspected"?"selected":""}>Inspected</option>
+          <option ${r.hkStatus === "Dirty" ? "selected" : ""}>Dirty</option>
+          <option ${r.hkStatus === "In Progress" ? "selected" : ""}>In Progress</option>
+          <option ${r.hkStatus === "Clean" ? "selected" : ""}>Clean</option>
+          <option ${r.hkStatus === "Inspected" ? "selected" : ""}>Inspected</option>
         </select>
       </td>
-      <td>${r.occupancy || ""}</td>
-      <td>${r.guestStatus || ""}</td>
-      <td>${r.checkin || ""}</td>
-      <td>${r.checkout || ""}</td>
-      <td>${r.reason || ""}</td>
-      <td>${r.description || ""}</td>
-      <td contenteditable="true">${r.notes || ""}</td>
+      <td>${r.occupancy}</td>
+      <td>${r.guestStatus}</td>
+      <td>${r.checkin}</td>
+      <td>${r.checkout}</td>
+      <td>${r.reason}</td>
+      <td>${r.description}</td>
+      <td contenteditable="true">${r.notes}</td>
       <td class="timer idle">00:00:00</td>
     `;
-
     tbody.appendChild(tr);
   });
 
   attachHKListeners();
+  updateSummary();
 }
 
 /* ===== HK STATUS CHANGE LISTENERS ===== */
@@ -222,7 +253,6 @@ function attachHKListeners() {
 
 /* ===== TIMER FUNCTIONS ===== */
 let timers = {};
-
 function startTimer(el, idx) {
   if (timers[idx]) return;
   const start = Date.now();
@@ -236,7 +266,6 @@ function startTimer(el, idx) {
     el.textContent = `${h}:${m}:${s}`;
   }, 1000);
 }
-
 function stopTimer(el, idx) {
   if (!timers[idx]) return;
   clearInterval(timers[idx]);
@@ -244,41 +273,12 @@ function stopTimer(el, idx) {
   el.classList.remove("running");
   el.classList.add("idle");
 }
-/* ===== EXPORT TO CSV ===== */
-function exportCSV() {
-  let csv = "Room,Type,Housekeeping Status,Occupancy,Guest Status,Check-In,Check-Out,Reason,Description,Notes\n";
-  document.querySelectorAll("#roomBody tr").forEach(row => {
-    const cells = [...row.children].map(td => td.innerText.replace(/,/g,""));
-    csv += cells.join(",") + "\n";
-  });
-  const blob = new Blob([csv], {type:"text/csv"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "housekeeping_board.csv";
-  a.click();
-}
-
-/* ===== DAILY RESET (6 AM) ===== */
-function checkReset() {
-  const last = localStorage.getItem("lastReset");
-  const now = new Date();
-  const today = now.toDateString();
-  const hr = now.getHours();
-  if (last !== today && hr >= 6) {
-    localStorage.clear();
-    localStorage.setItem("lastReset", today);
-    console.log("✅ Daily reset complete");
-    location.reload();
-  }
-}
-setInterval(checkReset, 60000);
-checkReset();
 
 /* ===== SUMMARY BAR ===== */
 function updateSummary() {
   const rows = document.querySelectorAll("#roomBody tr");
-  let arrivals=0, stays=0, deps=0;
-  rows.forEach(r=>{
+  let arrivals = 0, stays = 0, deps = 0;
+  rows.forEach(r => {
     const s = r.children[4].innerText.toLowerCase();
     if (s.includes("arriv")) arrivals++;
     else if (s.includes("stay")) stays++;
@@ -289,16 +289,12 @@ function updateSummary() {
 }
 
 /* ===== INIT ON LOAD ===== */
-window.onload = ()=>{
+window.onload = () => {
   updateClock();
-  setInterval(updateClock,1000);
-  initDashboard();
-  updateSummary();
+  setInterval(updateClock, 1000);
 };
-
-/* ===== BASIC STYLING ===== */
 </script>
-
+  
 <style>
 body {
   background:#fff;
@@ -349,3 +345,4 @@ th {background:#f3f4f6;}
 }
 </style>
 </html>
+
