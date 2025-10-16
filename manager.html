@@ -2,163 +2,230 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Tombstone Grand Hotel – Manager Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manager Dashboard – Tombstone Grand Hotel</title>
 <style>
-:root{
---accent:#005ea0;--text:#222;--bg:#fff;--border:#e5e7eb;
---running:#22c55e;--idle:#9ca3af;--arrival:#fff7e6;
---stay:#ecfdf5;--depart:#fef2f2;
+body {
+margin: 0;
+font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+background: #fff;
+color: #222;
 }
-html,body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);}
-header{background:var(--accent);color:#fff;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;}
-h1{margin:0;font-size:1.3rem;}
-#clock{font-weight:600;}
-main{padding:10px;}
-button{border:none;border-radius:6px;padding:6px 12px;background:var(--accent);color:#fff;cursor:pointer;}
-button:hover{background:#00447d;}
-table{width:100%;border-collapse:collapse;font-size:0.9rem;}
-th,td{border:1px solid var(--border);padding:6px;text-align:left;}
-th{background:#f3f4f6;}
-.status-arrival{background:var(--arrival);}
-.status-stay{background:var(--stay);}
-.status-depart{background:var(--depart);}
-.timer.running{color:var(--running);font-weight:600;}
-.timer.idle{color:var(--idle);}
-@media(max-width:768px){
-table{font-size:0.8rem;}
-th,td{padding:4px;}
-h1{font-size:1.1rem;}
+header {
+background: #005ea0;
+color: #fff;
+padding: 12px 20px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+h1 { margin: 0; font-size: 1.4rem; }
+#clock { font-weight: 600; }
+main { padding: 15px; }
+table {
+width: 100%;
+border-collapse: collapse;
+font-size: 0.95rem;
+}
+th, td {
+border: 1px solid #e5e7eb;
+padding: 8px;
+text-align: left;
+}
+th { background: #f3f4f6; }
+tr:nth-child(even) { background: #fafafa; }
+.status-arrival { background: #fff7e6; }
+.status-stayover { background: #ecfdf5; }
+.status-departure { background: #fef2f2; }
+.timer.running { color: #22c55e; font-weight: 600; }
+.timer.idle { color: #9ca3af; }
+.summary {
+margin-top: 10px;
+font-weight: 600;
+padding: 8px;
+background: #f9fafb;
+border-radius: 6px;
+border: 1px solid #eee;
 }
 </style>
 </head>
 <body>
-
 <header>
-<h1>Manager Dashboard</h1>
+<h1>Manager Dashboard – Housekeeping Board</h1>
 <div id="clock">--:--:--</div>
 </header>
-
 <main>
-<div id="controls" style="margin-bottom:8px;">
-<button onclick="exportCSV()">Export CSV</button>
-<span id="lastUpdated" style="margin-left:12px;font-weight:600;"></span>
-</div>
-
 <table id="roomTable">
 <thead>
 <tr>
-<th>Room</th><th>Type</th><th>Occupancy</th><th>Guest Status</th>
-<th>HK Status</th><th>Attendant</th><th>Notes</th><th>Timer</th>
+<th>Room</th>
+<th>Type</th>
+<th>Occupancy</th>
+<th>Guest Status</th>
+<th>HK Status</th>
+<th>Attendant</th>
+<th>Timer</th>
 </tr>
 </thead>
 <tbody id="roomBody"></tbody>
 </table>
+<div class="summary" id="summaryTotals"></div>
 </main>
 
 <script>
 /* ===== CLOCK ===== */
 function updateClock(){
-const n=new Date();
-document.getElementById("clock").textContent=
-`${n.getHours().toString().padStart(2,"0")}:${n.getMinutes().toString().padStart(2,"0")}:${n.getSeconds().toString().padStart(2,"0")}`;
+const now = new Date();
+const h = String(now.getHours()).padStart(2, "0");
+const m = String(now.getMinutes()).padStart(2, "0");
+const s = String(now.getSeconds()).padStart(2, "0");
+document.getElementById("clock").textContent = `${h}:${m}:${s}`;
 }
-setInterval(updateClock,1000);updateClock();
+setInterval(updateClock, 1000); updateClock();
 
-/* ===== ROOMS DATA ===== */
-const rooms=[
-{room:100,type:"RM2"},{room:101,type:"RM3"},{room:102,type:"RM2"},{room:103,type:"RM2"},
-{room:104,type:"RM2"},{room:105,type:"AC3"},{room:106,type:"RM2"},{room:107,type:"RM2"},
-{room:108,type:"RM2"},{room:109,type:"RM2"},{room:110,type:"RM2"},{room:111,type:"RM2"},
-{room:116,type:"AC1"},{room:118,type:"RM2"},{room:119,type:"RM2"},{room:120,type:"RM2"},
-{room:121,type:"RM3"},{room:122,type:"RM2"},{room:123,type:"RM3"},{room:125,type:"RM3"},
-{room:127,type:"RM3"},{room:129,type:"RM2"},{room:131,type:"RM2"},{room:133,type:"AC2"},
-{room:135,type:"AC2"},{room:137,type:"RM1"},{room:200,type:"RM2"},{room:201,type:"RM3"},
-{room:202,type:"RM2"},{room:203,type:"RM2"},{room:204,type:"RM2"},{room:205,type:"RM2"},
-{room:206,type:"RM2"},{room:207,type:"RM2"},{room:208,type:"RM2"},{room:209,type:"RM2"},
-{room:210,type:"RM2"},{room:211,type:"RM2"},{room:212,type:"SU1"},{room:214,type:"RM2"},
-{room:216,type:"RM2"},{room:218,type:"RM2"},{room:219,type:"RM2"},{room:221,type:"RM2"},
-{room:222,type:"RM3"},{room:223,type:"RM3"},{room:224,type:"RM2"},{room:225,type:"RM3"},
-{room:226,type:"RM2"},{room:227,type:"RM3"},{room:228,type:"RM2"},{room:229,type:"RM3"},
-{room:230,type:"RM2"},{room:231,type:"RM1"},{room:233,type:"RM2"},{room:235,type:"RM2"},
-{room:237,type:"RM2"},{room:239,type:"RM3"}
+/* ===== ROOM DATA ===== */
+const rooms = [
+{room:"100",type:"RM2",attendant:"Hilda"},
+{room:"101",type:"RM3",attendant:"Kennedy"},
+{room:"102",type:"RM2",attendant:"Mayte"},
+{room:"103",type:"RM2",attendant:"Angie"},
+{room:"104",type:"RM2",attendant:"Johana"},
+{room:"105",type:"AC3",attendant:"Mayte"},
+{room:"106",type:"RM2",attendant:"Hilda"},
+{room:"107",type:"RM2",attendant:"Hilda"},
+{room:"108",type:"RM2",attendant:"Kennedy"},
+{room:"109",type:"RM2",attendant:"Angie"},
+{room:"110",type:"RM2",attendant:"Hilda"},
+{room:"111",type:"RM2",attendant:"Hilda"},
+{room:"116",type:"AC1",attendant:"Kennedy"},
+{room:"118",type:"RM2",attendant:"Angie"},
+{room:"119",type:"RM2",attendant:"Angie"},
+{room:"120",type:"RM2",attendant:"Hilda"},
+{room:"121",type:"RM3",attendant:"Mayte"},
+{room:"122",type:"RM2",attendant:"Angie"},
+{room:"123",type:"RM3",attendant:"Hilda"},
+{room:"125",type:"RM3",attendant:"Kennedy"},
+{room:"127",type:"RM3",attendant:"Hilda"},
+{room:"129",type:"RM2",attendant:"Angie"},
+{room:"131",type:"RM2",attendant:"Kennedy"},
+{room:"133",type:"AC2",attendant:"Hilda"},
+{room:"135",type:"AC2",attendant:"Johana"},
+{room:"137",type:"RM1",attendant:"Angie"},
+{room:"200",type:"RM2",attendant:"Kennedy"},
+{room:"201",type:"RM3",attendant:"Hilda"},
+{room:"202",type:"RM2",attendant:"Mayte"},
+{room:"203",type:"RM2",attendant:"Johana"},
+{room:"204",type:"RM2",attendant:"Angie"},
+{room:"205",type:"RM2",attendant:"Hilda"},
+{room:"206",type:"RM2",attendant:"Mayte"},
+{room:"207",type:"RM2",attendant:"Kennedy"},
+{room:"208",type:"RM2",attendant:"Hilda"},
+{room:"209",type:"RM2",attendant:"Angie"},
+{room:"210",type:"RM2",attendant:"Mayte"},
+{room:"211",type:"RM2",attendant:"Hilda"},
+{room:"212",type:"SU1",attendant:"Kennedy"},
+{room:"214",type:"RM2",attendant:"Hilda"},
+{room:"216",type:"RM2",attendant:"Johana"},
+{room:"218",type:"RM2",attendant:"Angie"},
+{room:"219",type:"RM2",attendant:"Hilda"},
+{room:"221",type:"RM2",attendant:"Kennedy"},
+{room:"222",type:"RM3",attendant:"Mayte"},
+{room:"223",type:"RM3",attendant:"Hilda"},
+{room:"224",type:"RM2",attendant:"Kennedy"},
+{room:"225",type:"RM3",attendant:"Johana"},
+{room:"226",type:"RM2",attendant:"Angie"},
+{room:"227",type:"RM3",attendant:"Hilda"},
+{room:"228",type:"RM2",attendant:"Kennedy"},
+{room:"229",type:"RM3",attendant:"Angie"},
+{room:"230",type:"RM2",attendant:"Mayte"},
+{room:"231",type:"RM1",attendant:"Johana"},
+{room:"233",type:"RM2",attendant:"Hilda"},
+{room:"235",type:"RM2",attendant:"Angie"},
+{room:"237",type:"RM2",attendant:"Kennedy"},
+{room:"239",type:"RM3",attendant:"Hilda"}
 ];
 
-/* ===== BUILD TABLE ===== */
-const attendants=["Unassigned","Hilda","Johana","Kennedy","Angie","Mayte"];
-const guestOpts=["Vacant","Occupied"];
-const statusOpts=["Arriving","Stay Over","Departure"];
-const hkOpts=["Dirty","In Progress","Clean","Inspected"];
-let timers={};
-
-function initTable(){
-const tb=document.getElementById("roomBody");tb.innerHTML="";
+/* ====== TABLE RENDER ====== */
+const tbody = document.getElementById("roomBody");
 rooms.forEach((r,i)=>{
 const tr=document.createElement("tr");
 tr.innerHTML=`
 <td>${r.room}</td>
 <td>${r.type}</td>
-<td><select>${guestOpts.map(o=>`<option>${o}</option>`).join("")}</select></td>
-<td><select>${statusOpts.map(o=>`<option>${o}</option>`).join("")}</select></td>
-<td><select class="hkStatus">${hkOpts.map(o=>`<option>${o}</option>`).join("")}</select></td>
-<td><select>${attendants.map(a=>`<option>${a}</option>`).join("")}</select></td>
-<td contenteditable="true"></td>
-<td class="timer idle">00:00:00</td>`;
-tb.appendChild(tr);
+<td>
+<select class="occupancy">
+<option>Vacant</option>
+<option>Occupied</option>
+</select>
+</td>
+<td>
+<select class="guestStatus">
+<option>Arrival</option>
+<option>Stay Over</option>
+<option>Departure</option>
+</select>
+</td>
+<td>
+<select class="hkStatus">
+<option>Dirty</option>
+<option>In Progress</option>
+<option>Clean</option>
+<option>Inspected</option>
+</select>
+</td>
+<td>${r.attendant}</td>
+<td class="timer idle">00:00:00</td>
+`;
+tbody.appendChild(tr);
 });
-attachListeners();
-}
-initTable();
 
-/* ===== HK STATUS TIMER ===== */
-function attachListeners(){
-document.querySelectorAll(".hkStatus").forEach((sel,idx)=>{
-sel.addEventListener("change",e=>{
-const tr=e.target.closest("tr");
-const tm=tr.querySelector(".timer");
-const val=e.target.value;
-if(val==="In Progress") startTimer(tm,idx);
-else if(["Clean","Inspected"].includes(val)) stopTimer(tm,idx);
+/* ===== TIMER LOGIC ===== */
+const timers = {};
+document.querySelectorAll(".hkStatus").forEach((sel, idx) => {
+sel.addEventListener("change", (e) => {
+const val = e.target.value;
+const tr = e.target.closest("tr");
+const timerEl = tr.querySelector(".timer");
+if (val === "In Progress") startTimer(timerEl, idx);
+if (["Clean", "Inspected"].includes(val)) stopTimer(timerEl, idx);
 });
 });
+
+function startTimer(el, idx) {
+if (timers[idx]) return;
+const start = Date.now();
+el.classList.remove("idle");
+el.classList.add("running");
+timers[idx] = setInterval(() => {
+const diff = Date.now() - start;
+const h = String(Math.floor(diff / 3600000)).padStart(2, "0");
+const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, "0");
+const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, "0");
+el.textContent = `${h}:${m}:${s}`;
+}, 1000);
 }
-function startTimer(el,idx){
-if(timers[idx])return;
-const start=Date.now();
-el.classList.add("running");el.classList.remove("idle");
-timers[idx]=setInterval(()=>{
-const d=Date.now()-start;
-const h=String(Math.floor(d/3600000)).padStart(2,"0");
-const m=String(Math.floor((d%3600000)/60000)).padStart(2,"0");
-const s=String(Math.floor((d%60000)/1000)).padStart(2,"0");
-el.textContent=`${h}:${m}:${s}`;
-},1000);
-}
-function stopTimer(el,idx){
-if(!timers[idx])return;
-clearInterval(timers[idx]);timers[idx]=null;
-el.classList.remove("running");el.classList.add("idle");
+function stopTimer(el, idx) {
+if (!timers[idx]) return;
+clearInterval(timers[idx]);
+timers[idx] = null;
+el.classList.remove("running");
+el.classList.add("idle");
 }
 
-/* ===== EXPORT CSV ===== */
-function exportCSV(){
-const rows=document.querySelectorAll("#roomBody tr");
-let csv="Room,Type,Occupancy,Guest Status,HK Status,Attendant,Notes\n";
+/* ===== SUMMARY ===== */
+function updateSummary() {
+const rows = document.querySelectorAll("#roomBody tr");
+let arrivals = 0, stays = 0, deps = 0;
 rows.forEach(r=>{
-const vals=[...r.children].map(td=>td.innerText.replace(/,/g," "));
-csv+=vals.join(",")+"\n";
+const s = r.querySelector(".guestStatus").value.toLowerCase();
+if (s.includes("arrival")) arrivals++;
+else if (s.includes("stay")) stays++;
+else if (s.includes("depart")) deps++;
 });
-const blob=new Blob([csv],{type:"text/csv"});
-const a=document.createElement("a");
-a.href=URL.createObjectURL(blob);a.download="housekeeping_log.csv";a.click();
+document.getElementById("summaryTotals").innerText =
+`Total: ${rows.length} | Arrivals: ${arrivals} | Stayovers: ${stays} | Departures: ${deps}`;
 }
-
-/* ===== UPDATE STAMP ===== */
-function updateStamp(){
-const stamp=new Date().toLocaleString();
-document.getElementById("lastUpdated").textContent="Last Updated: "+stamp;
-}
-document.addEventListener("change",updateStamp);
+setInterval(updateSummary, 2000);
 </script>
 </body>
 </html>
