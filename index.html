@@ -1,307 +1,169 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Tombstone Grand Hotel – Housekeeping Board</title>
-<style>
-:root {
-  --accent: #005ea0;
-  --text: #222;
-  --bg: #fff;
-  --border: #e5e7eb;
-  --running: #22c55e;
-  --idle: #9ca3af;
-  --arrival: #fff7e6;
-  --stayover: #ecfdf5;
-  --departure: #fef2f2;
-}
-html, body {
-  margin: 0;
-  height: 100%;
-  background: var(--bg);
-  color: var(--text);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-}
-header {
-  background: var(--accent);
-  color: #fff;
-  padding: 16px 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-h1 {margin:0;font-size:1.4rem;}
-#clock {font-weight:600;}
-main {padding:20px;}
-table {
-  width:100%;
-  border-collapse:collapse;
-  font-size:0.95rem;
-}
-th,td {
-  border:1px solid var(--border);
-  padding:8px;
-  text-align:left;
-}
-th {background:#f3f4f6;}
-.status-arrival {background:var(--arrival);}
-.status-stayover {background:var(--stayover);}
-.status-departure {background:var(--departure);}
-.timer.running {color:var(--running);font-weight:600;}
-.timer.idle {color:var(--idle);}
-button {
-  background: var(--accent);
-  color: white;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-button:hover {background:#00447d;}
-#summary {
-  margin-top: 10px;
-  font-weight: 600;
-  background: #f9fafb;
-  border: 1px solid #eee;
-  border-radius: 6px;
-  padding: 8px;
-}
-
-/* LOGIN */
-#loginScreen {
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-  background:linear-gradient(160deg,#f0f4f8,#dbeafe);
-}
-.login-box {
-  background:#fff;
-  padding:30px 40px;
-  border-radius:10px;
-  box-shadow:0 8px 20px rgba(0,0,0,0.1);
-  width:320px;
-  text-align:center;
-}
-.login-box h2 {margin-bottom:20px;color:var(--accent);}
-.login-box input {
-  width:100%;
-  padding:10px;
-  margin:8px 0;
-  border:1px solid #ccc;
-  border-radius:6px;
-  font-size:1rem;
-}
-.login-box button {
-  width:100%;
-  background:var(--accent);
-  color:#fff;
-  border:none;
-  padding:10px;
-  font-size:1rem;
-  border-radius:6px;
-  cursor:pointer;
-  margin-top:10px;
-}
-.login-box button:hover {background:#00447d;}
-.error {color:red;font-size:0.9rem;margin-top:8px;}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tombstone Grand Hotel – Housekeeping Board</title>
+  <style>
+    :root {
+      --accent:#005ea0; --text:#222; --bg:#fff; --border:#e5e7eb;
+      --running:#22c55e; --idle:#9ca3af;
+      --arrival:#fff7e6; --stayover:#ecfdf5; --departure:#fef2f2;
+    }
+    html,body{margin:0;padding:0;height:100%;background:var(--bg);color:var(--text);
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;}
+    header{background:var(--accent);color:#fff;padding:16px 24px;
+      display:flex;justify-content:space-between;align-items:center;}
+    h1{margin:0;font-size:1.6rem;} #clock{font-weight:600;} main{padding:20px;}
+    #loginScreen{display:flex;flex-direction:column;justify-content:center;align-items:center;
+      height:100vh;background:linear-gradient(160deg,#f0f4f8,#dbeafe);}
+    .login-box{background:#fff;padding:30px 40px;border-radius:10px;
+      box-shadow:0 8px 20px rgba(0,0,0,0.1);width:320px;text-align:center;}
+    .login-box h2{margin-bottom:20px;color:var(--accent);}
+    .login-box input{width:100%;padding:10px;margin:8px 0;border:1px solid #ccc;
+      border-radius:6px;font-size:1rem;}
+    .login-box button{width:100%;background:var(--accent);color:#fff;border:none;
+      padding:10px;font-size:1rem;border-radius:6px;cursor:pointer;margin-top:10px;}
+    .login-box button:hover{background:#00447d;}
+    .error{color:red;font-size:0.9rem;margin-top:8px;}
+    table{width:100%;border-collapse:collapse;font-size:0.95rem;}
+    th,td{border:1px solid var(--border);padding:8px 6px;text-align:left;}
+    th{background:#f3f4f6;} tr:nth-child(even){background:#fafafa;}
+    .status-arrival{background:var(--arrival);}
+    .status-stayover{background:var(--stayover);}
+    .status-departure{background:var(--departure);}
+    .timer.running{color:var(--running);font-weight:600;}
+    .timer.idle{color:var(--idle);}
+    #summary{margin-top:10px;font-weight:600;font-size:0.95rem;}
+  </style>
 </head>
 <body>
-
-<!-- LOGIN -->
-<div id="loginScreen">
-  <div class="login-box">
-    <h2>Tombstone Grand Hotel</h2>
-    <input type="text" id="username" placeholder="Username" />
-    <input type="password" id="password" placeholder="Password" />
-    <button id="loginBtn">Login</button>
-    <div class="error" id="loginError"></div>
+  <!-- LOGIN -->
+  <div id="loginScreen">
+    <div class="login-box">
+      <h2>Tombstone Grand Hotel</h2>
+      <input type="text" id="username" placeholder="Username" />
+      <input type="password" id="password" placeholder="Password" />
+      <button id="loginBtn">Login</button>
+      <div class="error" id="loginError"></div>
+    </div>
   </div>
-</div>
 
-<!-- DASHBOARD -->
-<div id="dashboard" style="display:none;">
-  <header>
-    <h1>Housekeeping Board</h1>
-    <div id="clock">--:--:--</div>
-  </header>
-  <main>
-    <div id="userRole"></div>
-    <div id="controls"></div>
-    <table id="roomTable">
-      <thead>
-        <tr>
-          <th>Room</th>
-          <th>Type</th>
-          <th>HK Status</th>
-          <th>Occupancy</th>
-          <th>Guest Status</th>
-          <th>Notes</th>
-<th>Attendant</th>
-<th>Timer</th>
-        </tr>
-      </thead>
-      <tbody id="roomBody"></tbody>
-    </table>
-    <div id="summary"></div>
-  </main>
-</div>
+  <!-- DASHBOARD -->
+  <div id="dashboard" style="display:none;">
+    <header>
+      <h1>Housekeeping Dashboard</h1>
+      <div id="clock">--:--:--</div>
+    </header>
+    <main>
+      <div id="userRole"></div>
+      <button id="exportBtn" style="margin-bottom:10px;">Download CSV</button>
+      <table id="roomTable">
+        <thead>
+          <tr>
+            <th>Room</th><th>Type</th><th>Occupancy</th><th>Guest Status</th>
+            <th>HK Status</th><th>Attendant</th><th>Date Cleaned</th>
+            <th>Notes</th><th>Timer</th>
+          </tr>
+        </thead>
+        <tbody id="roomBody"></tbody>
+      </table>
+      <div id="summary"></div>
+    </main>
+  </div>
 
 <script>
-/* === LOGIN === */
-const credentials = {
-  manager: "admin2025",
-  hilda: "hk101",
-  johana: "hk102",
-  kennedy: "hk103",
-  angie: "hk104",
-  mayte: "hk105"
+/* ==== LOGIN SYSTEM ==== */
+const credentials={
+  manager:"admin2025",hilda:"hk101",johana:"hk102",
+  kennedy:"hk103",angie:"hk104",mayte:"hk105"
 };
-let currentUser = null;
-
-document.getElementById("loginBtn").addEventListener("click", () => {
-  const u = document.getElementById("username").value.trim().toLowerCase();
-  const p = document.getElementById("password").value.trim();
-  const err = document.getElementById("loginError");
-  if (credentials[u] && credentials[u] === p) {
-    currentUser = u;
-    document.getElementById("loginScreen").style.display = "none";
-    document.getElementById("dashboard").style.display = "block";
-    document.getElementById("userRole").innerHTML =
-      `<h2>Welcome, ${u.charAt(0).toUpperCase() + u.slice(1)}</h2>`;
+let currentUser=null;
+document.getElementById("loginBtn").addEventListener("click",()=>{
+  const u=document.getElementById("username").value.trim().toLowerCase();
+  const p=document.getElementById("password").value.trim();
+  const err=document.getElementById("loginError");
+  if(credentials[u]===p){
+    currentUser=u;
+    document.getElementById("loginScreen").style.display="none";
+    document.getElementById("dashboard").style.display="block";
+    document.getElementById("userRole").innerHTML=
+      `<h2>Welcome, ${u.charAt(0).toUpperCase()+u.slice(1)}</h2>`;
     initDashboard();
-  } else {
-    err.textContent = "Invalid username or password.";
-  }
+  } else err.textContent="Invalid username or password.";
 });
 
-/* === CLOCK === */
-function updateClock() {
-  const now = new Date();
-  const h = String(now.getHours()).padStart(2, "0");
-  const m = String(now.getMinutes()).padStart(2, "0");
-  const s = String(now.getSeconds()).padStart(2, "0");
-  document.getElementById("clock").textContent = `${h}:${m}:${s}`;
+/* ==== CLOCK ==== */
+function updateClock(){
+  const n=new Date();
+  const h=String(n.getHours()).padStart(2,"0"),
+        m=String(n.getMinutes()).padStart(2,"0"),
+        s=String(n.getSeconds()).padStart(2,"0");
+  document.getElementById("clock").textContent=`${h}:${m}:${s}`;
 }
-setInterval(updateClock, 1000);
-updateClock();
+setInterval(updateClock,1000);updateClock();
 
-/* === TABLE & ROOMS === */
-function initDashboard() {
-  const tbody = document.getElementById("roomBody");
-  tbody.innerHTML = "";
-
- const rooms = [
-  // --- AC1 ---
-  { room: 116, type: "AC1" },
-
-  // --- AC2 ---
-  { room: 133, type: "AC2" },
-  { room: 135, type: "AC2" },
-
-  // --- AC3 ---
-  { room: 105, type: "AC3" },
-
-  // --- RM1 ---
-  { room: 137, type: "RM1" },
-  { room: 223, type: "RM1" },
-  { room: 225, type: "RM1" },
-  { room: 227, type: "RM1" },
-  { room: 229, type: "RM1" },
-
-  // --- RM2 ---
-  { room: 100, type: "RM2" },
-  { room: 102, type: "RM2" },
-  { room: 103, type: "RM2" },
-  { room: 104, type: "RM2" },
-  { room: 106, type: "RM2" },
-  { room: 107, type: "RM2" },
-  { room: 108, type: "RM2" },
-  { room: 109, type: "RM2" },
-  { room: 110, type: "RM2" },
-  { room: 111, type: "RM2" },
-  { room: 119, type: "RM2" },
-  { room: 120, type: "RM2" },
-  { room: 122, type: "RM2" },
-  { room: 129, type: "RM2" },
-  { room: 131, type: "RM2" },
-  { room: 200, type: "RM2" },
-  { room: 202, type: "RM2" },
-  { room: 203, type: "RM2" },
-  { room: 204, type: "RM2" },
-  { room: 205, type: "RM2" },
-  { room: 206, type: "RM2" },
-  { room: 207, type: "RM2" },
-  { room: 208, type: "RM2" },
-  { room: 209, type: "RM2" },
-  { room: 210, type: "RM2" },
-  { room: 211, type: "RM2" },
-  { room: 214, type: "RM2" },
-  { room: 216, type: "RM2" },
-  { room: 218, type: "RM2" },
-  { room: 219, type: "RM2" },
-  { room: 221, type: "RM2" },
-  { room: 224, type: "RM2" },
-  { room: 226, type: "RM2" },
-  { room: 228, type: "RM2" },
-  { room: 230, type: "RM2" },
-  { room: 233, type: "RM2" },
-  { room: 235, type: "RM2" },
-  { room: 237, type: "RM2" },
-
-  // --- RM3 ---
-  { room: 101, type: "RM3" },
-  { room: 121, type: "RM3" },
-  { room: 123, type: "RM3" },
-  { room: 125, type: "RM3" },
-  { room: 127, type: "RM3" },
-  { room: 201, type: "RM3" },
-  { room: 222, type: "RM3" },
-  { room: 239, type: "RM3" },
-
-  // --- SU1 ---
-  { room: 212, type: "SU1" }
+/* ==== ROOMS (60 TOTAL) ==== */
+const rooms=[
+  {room:"100",type:"RM2",floor:"Ground"},{room:"101",type:"RM3",floor:"Ground"},
+  {room:"102",type:"RM2",floor:"Ground"},{room:"103",type:"RM2",floor:"Ground"},
+  {room:"104",type:"RM2",floor:"Ground"},{room:"105",type:"AC3",floor:"Ground"},
+  {room:"106",type:"RM2",floor:"Ground"},{room:"107",type:"RM2",floor:"Ground"},
+  {room:"108",type:"RM2",floor:"Ground"},{room:"109",type:"RM2",floor:"Ground"},
+  {room:"110",type:"RM2",floor:"Ground"},{room:"111",type:"RM2",floor:"Ground"},
+  {room:"116",type:"AC1",floor:"Ground"},{room:"119",type:"RM2",floor:"Ground"},
+  {room:"120",type:"RM2",floor:"Ground"},{room:"121",type:"RM3",floor:"Ground"},
+  {room:"122",type:"RM2",floor:"Ground"},{room:"123",type:"RM3",floor:"Ground"},
+  {room:"125",type:"RM3",floor:"Ground"},{room:"127",type:"RM3",floor:"Ground"},
+  {room:"129",type:"RM2",floor:"Ground"},{room:"131",type:"RM2",floor:"Ground"},
+  {room:"133",type:"AC2",floor:"Ground"},{room:"135",type:"AC2",floor:"Ground"},
+  {room:"137",type:"RM1",floor:"Ground"},
+  /* Upstairs */
+  {room:"200",type:"RM2",floor:"Upstairs"},{room:"201",type:"RM3",floor:"Upstairs"},
+  {room:"202",type:"RM2",floor:"Upstairs"},{room:"203",type:"RM2",floor:"Upstairs"},
+  {room:"204",type:"RM2",floor:"Upstairs"},{room:"205",type:"RM2",floor:"Upstairs"},
+  {room:"206",type:"RM2",floor:"Upstairs"},{room:"207",type:"RM2",floor:"Upstairs"},
+  {room:"208",type:"RM2",floor:"Upstairs"},{room:"209",type:"RM2",floor:"Upstairs"},
+  {room:"210",type:"RM2",floor:"Upstairs"},{room:"211",type:"RM2",floor:"Upstairs"},
+  {room:"212",type:"SU1",floor:"Upstairs"},{room:"214",type:"RM2",floor:"Upstairs"},
+  {room:"216",type:"RM2",floor:"Upstairs"},{room:"218",type:"RM2",floor:"Upstairs"},
+  {room:"219",type:"RM2",floor:"Upstairs"},{room:"221",type:"RM2",floor:"Upstairs"},
+  {room:"222",type:"RM3",floor:"Upstairs"},{room:"223",type:"RM1",floor:"Upstairs"},
+  {room:"224",type:"RM2",floor:"Upstairs"},{room:"225",type:"RM1",floor:"Upstairs"},
+  {room:"226",type:"RM2",floor:"Upstairs"},{room:"227",type:"RM1",floor:"Upstairs"},
+  {room:"228",type:"RM2",floor:"Upstairs"},{room:"229",type:"RM1",floor:"Upstairs"},
+  {room:"230",type:"RM2",floor:"Upstairs"},{room:"233",type:"RM2",floor:"Upstairs"},
+  {room:"235",type:"RM2",floor:"Upstairs"},{room:"237",type:"RM2",floor:"Upstairs"},
+  {room:"239",type:"RM3",floor:"Upstairs"}
 ];
+  /* ==== LOCAL SAVE / LOAD ==== */
+function saveData(){
+  localStorage.setItem("hkData",JSON.stringify(rooms));
+}
+function loadData(){
+  const s=localStorage.getItem("hkData");
+  if(!s)return;
+  const d=JSON.parse(s);
+  d.forEach(p=>{
+    const m=rooms.find(r=>r.room===p.room);
+    if(m)Object.assign(m,p);
+  });
+}
 
-// Fill remaining default values
-const guestStatuses = ["Arriving", "Stay Over", "Departing", "Vacant"];
-const hkStatuses = ["Dirty", "In Progress", "Clean", "Inspected"];
+/* ==== DASHBOARD ==== */
+function initDashboard(){
+  loadData();
+  const tbody=document.getElementById("roomBody");
+  tbody.innerHTML="";
+  rooms.forEach((r,i)=>{
+    if(currentUser!=="manager" && r.attendant && r.attendant.toLowerCase()!==currentUser) return;
+    const tr=document.createElement("tr");
 
-rooms.forEach((r, i) => {
-  r.hkStatus = hkStatuses[i % hkStatuses.length];
-  r.occupancy = i % 2 ? "Occupied" : "Vacant";
-  r.guestStatus = guestStatuses[i % guestStatuses.length];
-  r.notes = "";
-});
-
-  let filtered = rooms;
-  if (currentUser !== "manager") {
-    const assignMap = {
-      hilda: [100,101,102,103,104,105,106,107,108,109],
-      johana: [110,111,112,113,114,115,116,117,118,119],
-      kennedy: [200,201,202,203,204,205,206,207,208,209],
-      angie: [210,211,212,213,214,215,216,217,218,219],
-      mayte: [220,221,222,223,224,225,226,227,228,229]
-    };
-    filtered = rooms.filter(r => assignMap[currentUser].includes(r.room));
-  } else {
-    document.getElementById("controls").innerHTML = '<button id="exportBtn">Export CSV</button>';
-    document.getElementById("exportBtn").addEventListener("click", exportCSV);
-  }
-
-  filtered.forEach((r, i) => {
-    const tr = document.createElement("tr");
-    let rowClass = "";
-    if (/arrival/i.test(r.guestStatus)) rowClass = "status-arrival";
-    else if (/stay/i.test(r.guestStatus)) rowClass = "status-stayover";
-    else if (/depart/i.test(r.guestStatus)) rowClass = "status-departure";
-    tr.className = rowClass;
-    tr.innerHTML = `
+    tr.innerHTML=`
       <td>${r.room}</td>
       <td>${r.type}</td>
+      <td contenteditable="true">${r.occupancy||""}</td>
+      <td contenteditable="true">${r.guestStatus||""}</td>
       <td>
         <select class="hkStatus">
           <option ${r.hkStatus==="Dirty"?"selected":""}>Dirty</option>
@@ -310,82 +172,166 @@ rooms.forEach((r, i) => {
           <option ${r.hkStatus==="Inspected"?"selected":""}>Inspected</option>
         </select>
       </td>
-      <td>${r.occupancy}</td>
-      <td>${r.guestStatus}</td>
-      <td contenteditable="true">${r.notes}</td>
-      <td class="timer idle">00:00:00</td>
-    `;
+      <td>
+        ${currentUser==="manager"
+          ? `<select class="attendant">
+               <option value="">Unassigned</option>
+               <option ${r.attendant==="hilda"?"selected":""}>Hilda</option>
+               <option ${r.attendant==="johana"?"selected":""}>Johana</option>
+               <option ${r.attendant==="kennedy"?"selected":""}>Kennedy</option>
+               <option ${r.attendant==="angie"?"selected":""}>Angie</option>
+               <option ${r.attendant==="mayte"?"selected":""}>Mayte</option>
+             </select>`
+          : (r.attendant?r.attendant:"")}
+      </td>
+      <td>${r.dateCleaned||""}</td>
+      <td contenteditable="true">${r.notes||""}</td>
+      <td class="timer idle">00:00:00</td>`;
     tbody.appendChild(tr);
   });
-
   attachListeners();
   updateSummary();
 }
 
-/* === HK STATUS CHANGE + TIMER === */
-let timers = {};
-function attachListeners() {
-  document.querySelectorAll(".hkStatus").forEach((sel, idx) => {
-    sel.addEventListener("change", e => {
-      const val = e.target.value;
-      const tr = e.target.closest("tr");
-      const timerEl = tr.querySelector(".timer");
-      if (val === "In Progress") startTimer(timerEl, idx);
-      if (["Clean", "Inspected"].includes(val)) stopTimer(timerEl, idx);
+/* ==== LISTENERS ==== */
+function attachListeners(){
+  document.querySelectorAll(".hkStatus").forEach((sel,idx)=>{
+    sel.addEventListener("change",e=>{
+      const val=e.target.value;
+      const tr=e.target.closest("tr");
+      const rnum=tr.children[0].innerText;
+      const rm=rooms.find(r=>r.room===rnum);
+      const timerEl=tr.querySelector(".timer");
+      rm.hkStatus=val;
+
+      if(val==="In Progress") startTimer(timerEl,idx);
+      if(["Clean","Inspected"].includes(val)){
+        stopTimer(timerEl,idx);
+        rm.dateCleaned=new Date().toLocaleString();
+      }
+      saveData();
+      updateSummary();
+    });
+  });
+
+  document.querySelectorAll(".attendant").forEach(sel=>{
+    sel.addEventListener("change",e=>{
+      const tr=e.target.closest("tr");
+      const rnum=tr.children[0].innerText;
+      const rm=rooms.find(r=>r.room===rnum);
+      rm.attendant=e.target.value.toLowerCase();
+      saveData();
+    });
+  });
+
+  document.querySelectorAll("td[contenteditable='true']").forEach(td=>{
+    td.addEventListener("input",()=>{
+      const tr=td.closest("tr");
+      const rnum=tr.children[0].innerText;
+      const rm=rooms.find(r=>r.room===rnum);
+      rm.occupancy=tr.children[2].innerText;
+      rm.guestStatus=tr.children[3].innerText;
+      rm.notes=tr.children[7].innerText;
+      saveData();
     });
   });
 }
-function startTimer(el, idx) {
-  if (timers[idx]) return;
-  const start = Date.now();
-  el.classList.remove("idle");
-  el.classList.add("running");
-  timers[idx] = setInterval(() => {
-    const diff = Date.now() - start;
-    const h = String(Math.floor(diff / 3600000)).padStart(2, "0");
-    const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, "0");
-    const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, "0");
-    el.textContent = `${h}:${m}:${s}`;
-  }, 1000);
+
+/* ==== TIMER ==== */
+let timers={};
+function startTimer(el,idx){
+  if(timers[idx])return;
+  const start=Date.now();
+  el.classList.remove("idle");el.classList.add("running");
+  timers[idx]=setInterval(()=>{
+    const diff=Date.now()-start;
+    const h=String(Math.floor(diff/3600000)).padStart(2,"0");
+    const m=String(Math.floor((diff%3600000)/60000)).padStart(2,"0");
+    const s=String(Math.floor((diff%60000)/1000)).padStart(2,"0");
+    el.textContent=`${h}:${m}:${s}`;
+  },1000);
 }
-function stopTimer(el, idx) {
-  if (!timers[idx]) return;
+function stopTimer(el,idx){
+  if(!timers[idx])return;
   clearInterval(timers[idx]);
-  timers[idx] = null;
-  el.classList.remove("running");
-  el.classList.add("idle");
+  timers[idx]=null;
+  el.classList.remove("running");el.classList.add("idle");
 }
 
-/* === CSV EXPORT === */
-function exportCSV() {
-  let csv = "Room,Type,HK Status,Occupancy,Guest Status,Notes\n";
-  document.querySelectorAll("#roomBody tr").forEach(row => {
-    const cells = [...row.children].map(td => td.innerText.replace(/,/g,""));
-    csv += cells.join(",") + "\n";
+/* ==== SUMMARY ==== */
+function updateSummary(){
+  const rows=document.querySelectorAll("#roomBody tr");
+  let arrivals=0,stays=0,deps=0;
+  rows.forEach(r=>{
+    const s=r.children[3].innerText.toLowerCase();
+    if(s.includes("arriv"))arrivals++;
+    else if(s.includes("stay"))stays++;
+    else if(s.includes("depart"))deps++;
   });
-  const blob = new Blob([csv], {type:"text/csv"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "housekeeping_log.csv";
-  a.click();
-}
-
-/* === SUMMARY BAR === */
-function updateSummary() {
-  const rows = document.querySelectorAll("#roomBody tr");
-  let arrivals = 0, stays = 0, deps = 0;
-  rows.forEach(r => {
-    const s = r.children[4].innerText.toLowerCase();
-    if (s.includes("arriv")) arrivals++;
-    else if (s.includes("stay")) stays++;
-    else if (s.includes("depart")) deps++;
-  });
-  document.getElementById("summary").innerText =
+  document.getElementById("summary").textContent=
     `Total: ${rows.length} | Arrivals: ${arrivals} | Stayovers: ${stays} | Departures: ${deps}`;
 }
+
+/* ==== DAILY RESET ==== */
+function checkReset(){
+  const last=localStorage.getItem("lastReset");
+  const now=new Date();const today=now.toDateString();const hr=now.getHours();
+  if(last!==today && hr>=6){
+    localStorage.clear();
+    localStorage.setItem("lastReset",today);
+    console.log("🧹 Daily reset complete");
+    location.reload();
+  }
+}
+setInterval(checkReset,60000);checkReset();
+
+/* ==== CSV EXPORT ==== */
+document.getElementById("exportBtn").addEventListener("click",()=>{
+  let csv="Room,Type,Occupancy,Guest Status,HK Status,Attendant,Date Cleaned,Notes\n";
+  rooms.forEach(r=>{
+    csv+=`${r.room},${r.type},${r.occupancy||""},${r.guestStatus||""},${r.hkStatus||""},${r.attendant||""},${r.dateCleaned||""},${(r.notes||"").replace(/,/g," ")}\n`;
+  });
+  const blob=new Blob([csv],{type:"text/csv"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="housekeeping_report.csv";
+  a.click();
+  saveData();
+});
+/* ==== INITIALIZE AFTER LOAD ==== */
+window.onload=()=>{
+  updateClock();
+  setInterval(updateClock,1000);
+  initDashboard();
+  updateSummary();
+};
+
+/* ==== END OF SCRIPT ==== */
 </script>
-</body>
+
+<style>
+/* ===== STYLING POLISH ===== */
+body{background:#fff;color:#222;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;margin:0;}
+header{background:#005ea0;color:#fff;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;}
+h1{margin:0;font-size:1.5rem;} #clock{font-weight:600;}
+main{padding:20px;}
+button,select{border:1px solid #ccc;border-radius:5px;padding:6px 10px;cursor:pointer;}
+button:hover{background:#005ea0;color:#fff;}
+table{width:100%;border-collapse:collapse;font-size:0.95rem;}
+th,td{border:1px solid #e5e7eb;padding:8px;}
+th{background:#f3f4f6;}
+.status-arrival{background:#fff7e6;}
+.status-stayover{background:#ecfdf5;}
+.status-departure{background:#fef2f2;}
+.timer.running{color:#22c55e;font-weight:600;}
+.timer.idle{color:#9ca3af;}
+#summary{margin-top:10px;font-weight:600;padding:8px;background:#f9fafb;border-radius:6px;border:1px solid #eee;}
+#exportBtn{background:#005ea0;color:white;border:none;border-radius:6px;padding:8px 12px;cursor:pointer;}
+#exportBtn:hover{background:#00447d;}
+select.hkStatus{min-width:120px;}
+select.attendant{min-width:110px;}
+td[contenteditable="true"]{background:#fefefe;}
+td[contenteditable="true"]:focus{outline:2px solid #a0c4ff;}
+</style>
 </html>
-
-
 
