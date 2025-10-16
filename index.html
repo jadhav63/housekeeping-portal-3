@@ -234,16 +234,19 @@ document.getElementById("loginBtn").addEventListener("click", () => {
   const p = document.getElementById("password").value.trim();
   const err = document.getElementById("loginError");
   if (credentials[u] && credentials[u] === p) {
-    currentUser = u;
-    document.getElementById("loginScreen").style.display = "none";
-    document.getElementById("dashboard").style.display = "block";
-    document.getElementById("userRole").innerHTML =
-      `<h2>Welcome, ${u.charAt(0).toUpperCase() + u.slice(1)}</h2>`;
-    initDashboard();
-  } else {
-    err.textContent = "Invalid username or password.";
-  }
-});
+currentUser = u;
+
+// Redirect based on role
+if (u === "manager" || u === "frontdesk") {
+window.location.href = "manager.html";
+} else {
+document.getElementById("loginScreen").style.display = "none";
+document.getElementById("dashboard").style.display = "block";
+document.getElementById("userRole").innerHTML =
+`<h2>Welcome, ${u.charAt(0).toUpperCase() + u.slice(1)}</h2>`;
+initDashboard();
+}
+}
 
 /* === ROOM DATA (60 TOTAL) === */
 const rooms = [
@@ -425,4 +428,5 @@ window.addEventListener("resize", ()=>{
   document.body.style.fontSize = width < 480 ? "0.9rem" : "1rem";
 });
 </script>
+
 
