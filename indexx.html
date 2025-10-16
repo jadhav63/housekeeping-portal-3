@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tombstone Grand Hotel – Login</title>
+<style>
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(160deg,#f0f4f8,#dbeafe);
+    display:flex;justify-content:center;align-items:center;
+    height:100vh;margin:0;
+  }
+  .login-box {
+    background:#fff;padding:30px 40px;border-radius:10px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.1);
+    width:320px;text-align:center;
+  }
+  h2 {color:#005ea0;margin-bottom:20px;}
+  input {
+    width:100%;padding:10px;margin:8px 0;
+    border:1px solid #ccc;border-radius:6px;font-size:1rem;
+  }
+  button {
+    width:100%;padding:10px;margin-top:10px;
+    background:#005ea0;color:#fff;border:none;
+    border-radius:6px;font-size:1rem;cursor:pointer;
+  }
+  button:hover {background:#00447d;}
+  .error {color:red;font-size:0.9rem;margin-top:8px;}
+  footer {
+    position:absolute;bottom:10px;width:100%;text-align:center;
+    font-size:0.8rem;color:#555;
+  }
+</style>
+</head>
+<body>
+
+<div class="login-box">
+  <h2>Tombstone Grand Hotel</h2>
+  <input type="text" id="username" placeholder="Username">
+  <input type="password" id="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+  <div class="error" id="errorMsg"></div>
+</div>
+
+<footer>© 2025 Tombstone Grand Hotel – Housekeeping Portal</footer>
+
+<script>
+const credentials = {
+  manager:   {pass:"admin2025", redirect:"manager.html"},
+  frontdesk: {pass:"fd2025", redirect:"frontdesk.html"},
+  hilda:     {pass:"hk101", redirect:"hk-hilda.html"},
+  johana:    {pass:"hk102", redirect:"hk-johana.html"},
+  kennedy:   {pass:"hk103", redirect:"hk-kennedy.html"},
+  angie:     {pass:"hk104", redirect:"hk-angie.html"},
+  mayte:     {pass:"hk105", redirect:"hk-mayte.html"}
+};
+
+function login(){
+  const user=document.getElementById("username").value.trim().toLowerCase();
+  const pass=document.getElementById("password").value.trim();
+  const err=document.getElementById("errorMsg");
+
+  if(credentials[user] && credentials[user].pass===pass){
+    // Store logged user for session use
+    localStorage.setItem("currentUser", user);
+    window.location.href = credentials[user].redirect;
+  } else {
+    err.textContent="Invalid username or password.";
+  }
+}
+</script>
+</body>
+</html>
