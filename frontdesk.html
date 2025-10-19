@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Tombstone Grand Hotel – Manager Dashboard</title>
+<title>Tombstone Grand Hotel – Front Desk Dashboard</title>
 <style>
 :root{
  --accent:#005ea0;--text:#222;--bg:#fff;--border:#e5e7eb;
@@ -39,7 +39,7 @@ th{background:#f3f4f6;}
 </head>
 <body>
 <header>
- <h1>Manager Dashboard</h1>
+ <h1>Front Desk Dashboard</h1>
  <div id="clock">--:--:--</div>
 </header>
 <main>
@@ -59,6 +59,7 @@ th{background:#f3f4f6;}
  <div id="summary" style="margin-top:8px;font-weight:600;"></div>
 </main>
 <script>
+// This page uses the same logic as manager, but you can customize restrictions if needed.
 /* Clock */
 function updateClock(){
  const now=new Date();
@@ -109,10 +110,10 @@ function initTable(){
   row.innerHTML=`
     <td>${r.room}</td>
     <td>${r.type}</td>
-    <td><select class="occSel">${occupancyOpts.map(o=>`<option${o===occVal? ' selected':''}>${o}</option>`).join("")}</select></td>
-    <td><select class="guestSel">${guestOpts.map(o=>`<option${o===guestVal? ' selected':''}>${o}</option>`).join("")}</select></td>
-    <td><select class="hkSel">${hkOpts.map(o=>`<option${o===hkVal? ' selected':''}>${o}</option>`).join("")}</select></td>
-    <td><select class="attSel">${attendants.map(a=>`<option${a===attVal? ' selected':''}>${a}</option>`).join("")}</select></td>
+    <td><select class="occSel">${occupancyOpts.map(o=>`<option${o===occVal?' selected':''}>${o}</option>`).join('')}</select></td>
+    <td><select class="guestSel">${guestOpts.map(o=>`<option${o===guestVal?' selected':''}>${o}</option>`).join('')}</select></td>
+    <td><select class="hkSel">${hkOpts.map(o=>`<option${o===hkVal?' selected':''}>${o}</option>`).join('')}</select></td>
+    <td><select class="attSel">${attendants.map(a=>`<option${a===attVal?' selected':''}>${a}</option>`).join('')}</select></td>
     <td contenteditable="true" class="notes">${notesVal}</td>
     <td class="timer idle">00:00:00</td>`;
   tbody.appendChild(row);
@@ -138,50 +139,41 @@ function attachListeners(){
    el.addEventListener("input", saveData);
  });
 }
-
 function startTimer(el,idx){
  if(timers[idx]) return;
  const start=Date.now();
- el.classList.add("running");
- el.classList.remove("idle");
+ el.classList.add("running");el.classList.remove("idle");
  timers[idx]=setInterval(()=>{
-   const diff=Date.now()-start;
-   const h=String(Math.floor(diff/3600000)).padStart(2,"0");
-   const m=String(Math.floor((diff%3600000)/60000)).padStart(2,"0");
-   const s=String(Math.floor((diff%60000)/1000)).padStart(2,"0");
-   el.textContent=`${h}:${m}:${s}`;
+  const diff=Date.now()-start;
+  const h=String(Math.floor(diff/3600000)).padStart(2,"0");
+  const m=String(Math.floor((diff%3600000)/60000)).padStart(2,"0");
+  const s=String(Math.floor((diff%60000)/1000)).padStart(2,"0");
+  el.textContent=`${h}:${m}:${s}`;
  },1000);
 }
-
 function stopTimer(el,idx){
  if(!timers[idx]) return;
- clearInterval(timers[idx]);
- timers[idx]=null;
- el.classList.remove("running");
- el.classList.add("idle");
+ clearInterval(timers[idx]);timers[idx]=null;
+ el.classList.remove("running");el.classList.add("idle");
 }
-
 function saveData(){
  const rows=[...document.querySelectorAll("#roomBody tr")];
- const data=rows.map(r=>{
-   return {
-     room: r.children[0].innerText,
-     type: r.children[1].innerText,
-     occupancy: r.querySelector(".occSel").value,
-     guestStatus: r.querySelector(".guestSel").value,
-     hkStatus: r.querySelector(".hkSel").value,
-     attendant: r.querySelector(".attSel").value,
-     notes: r.querySelector(".notes").innerText.trim()
-   };
- });
+ const data=rows.map(r=>({
+   room:r.children[0].innerText,
+   type:r.children[1].innerText,
+   occupancy:r.querySelector(".occSel").value,
+   guestStatus:r.querySelector(".guestSel").value,
+   hkStatus:r.querySelector(".hkSel").value,
+   attendant:r.querySelector(".attSel").value,
+   notes:r.querySelector(".notes").innerText.trim()
+ }));
  localStorage.setItem("hkData", JSON.stringify(data));
  updateLastUpdated();
  updateSummary();
 }
-
 function updateSummary(){
  const rows=document.querySelectorAll("#roomBody tr");
- let arrivals=0, stays=0, deps=0;
+ let arrivals=0,stays=0,deps=0;
  rows.forEach(r=>{
    const g=r.querySelector(".guestSel").value;
    if(g==="Arrival") arrivals++;
@@ -190,12 +182,10 @@ function updateSummary(){
  });
  document.getElementById("summary").textContent=`Total Rooms: ${rows.length} | Arrivals: ${arrivals} | Stayovers: ${stays} | Departures: ${deps}`;
 }
-
 function updateLastUpdated(){
  const stamp=new Date().toLocaleString();
  document.getElementById("lastUpdated").textContent="Last Updated: "+stamp;
 }
-
 function exportCSV(){
  const rows=[...document.querySelectorAll("#roomBody tr")];
  let csv="Room,Type,Occupancy,Guest Status,HK Status,Attendant,Notes\n";
@@ -206,19 +196,13 @@ function exportCSV(){
    const guest=r.querySelector(".guestSel").value;
    const hk=r.querySelector(".hkSel").value;
    const att=r.querySelector(".attSel").value;
-   const notes=r.querySelector(".notes").innerText.replace(/,/g, ";");
+   const notes=r.querySelector(".notes").innerText.replace(/,/g,";");
    csv+=`${room},${type},${occ},${guest},${hk},${att},${notes}\n`;
  });
- const blob=new Blob([csv], {type:"text/csv"});
- const a=document.createElement("a");
- a.href=URL.createObjectURL(blob);
- a.download="housekeeping_log.csv";
- a.click();
+ const blob=new Blob([csv],{type:"text/csv"});
+ const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="housekeeping_log.csv";a.click();
 }
-
-window.addEventListener("load", () => {
- initTable();
-});
+window.addEventListener("load",()=>{initTable();});
 </script>
 </body>
 </html>
