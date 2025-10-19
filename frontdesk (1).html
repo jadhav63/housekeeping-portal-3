@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Tombstone Grand Hotel – Front Desk Dashboard</title>
+<style>
+:root{
+ --accent:#005ea0;--text:#222;--bg:#fff;--border:#e5e7eb;
+ --running:#22c55e;--idle:#9ca3af;
+ --arrival:#fff7e6;--stayover:#ecfdf5;--departure:#fef2f2;
+}
+html,body{
+ margin:0;
+ font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+ background:var(--bg);
+ color:var(--text);
+}
+header{
+ background:var(--accent);
+ color:#fff;
+ padding:12px 20px;
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ flex-wrap:wrap;
+}
+h1{margin:0;font-size:1.4rem;}
+#clock{font-weight:600;}
+main{padding:10px;}
+button{border:none;border-radius:6px;padding:6px 12px;background:var(--accent);color:#fff;cursor:pointer;margin-right:8px;}
+button:hover{background:#00447d;}
+table{width:100%;border-collapse:collapse;font-size:0.9rem;}
+th,td{border:1px solid var(--border);padding:6px;text-align:left;}
+th{background:#f3f4f6;}
+.status-arrival{background:var(--arrival);} .status-stayover{background:var(--stayover);} .status-departure{background:var(--departure);} .timer.running{color:var(--running);font-weight:600;} .timer.idle{color:var(--idle);} 
+@media(max-width:768px){table{font-size:0.8rem;}th,td{padding:4px;}h1{font-size:1.2rem;}}
+</style>
+</head>
+<body>
+<header>
+ <h1>Front Desk Dashboard</h1>
+ <div id="clock">--:--:--</div>
+</header>
+ <!-- Navigation bar for quick access to other views -->
+ <nav style="background:#e5e7eb;padding:8px 20px;display:flex;flex-wrap:wrap;gap:8px;">
+   <a href="assign-room.html" style="background:#005ea0;color:#fff;padding:6px 10px;border-radius:4px;text-decoration:none;font-size:0.9rem;">Assign Room</a>
+   <a href="hk-overview.html" style="background:#005ea0;color:#fff;padding:6px 10px;border-radius:4px;text-decoration:none;font-size:0.9rem;">HK Name</a>
+   <a href="master-view.html" style="background:#005ea0;color:#fff;padding:6px 10px;border-radius:4px;text-decoration:none;font-size:0.9rem;">Master View</a>
+   <a href="index.html" style="background:#005ea0;color:#fff;padding:6px 10px;border-radius:4px;text-decoration:none;font-size:0.9rem;">Housekeeping Login</a>
+   <a href="index.html" style="background:#005ea0;color:#fff;padding:6px 10px;border-radius:4px;text-decoration:none;font-size:0.9rem;">Main Page</a>
+ </nav>
+<main>
+ <div id="controls" style="margin-bottom:8px;">
+   <button onclick="exportCSV()">Export CSV</button>
+   <span id="lastUpdated" style="font-weight:600;"></span>
+ </div>
+ <table id="roomTable">
+   <thead>
+     <tr>
+       <th>Room</th><th>Type</th><th>Occupancy</th><th>Guest Status</th>
+       <th>HK Status</th><th>Attendant</th><th>Notes</th><th>Timer</th>
+     </tr>
+   </thead>
+   <tbody id="roomBody"></tbody>
+ </table>
+ <div id="summary" style="margin-top:8px;font-weight:600;"></div>
+</main>
+<script>
+// This page uses the same logic as manager, but you can customize restrictions if needed.
+/* Clock */
+function updateClock(){
+ const now=new Date();
+ const h=String(now.getHours()).padStart(2,"0");
+ const m=String(now.getMinutes()).padStart(2,"0");
+ const s=String(now.getSeconds()).padStart(2,"0");
+ document.getElementById("clock").textContent=`${h}:${m}:${s}`;
+}
+setInterval(updateClock,1000);updateClock();
+
+/* Room data */
+const rooms=[
+ {room:100,type:"RM2"},{room:101,type:"RM3"},{room:102,type:"RM2"},{room:103,type:"RM2"},
+ {room:104,type:"RM2"},{room:105,type:"AC3"},{room:106,type:"RM2"},{room:107,type:"RM2"},
+ {room:108,type:"RM2"},{room:109,type:"RM2"},{room:110,type:"RM2"},{room:111,type:"RM2"},
+ {room:116,type:"AC1"},{room:118,type:"RM2"},{room:119,type:"RM2"},{room:120,type:"RM2"},
+ {room:121,type:"RM3"},{room:122,type:"RM2"},{room:123,type:"RM3"},{room:125,type:"RM3"},
+ {room:127,type:"RM3"},{room:129,type:"RM2"},{room:131,type:"RM2"},{room:133,type:"AC2"},
+ {room:135,type:"AC2"},{room:137,type:"RM1"},{room:200,type:"RM2"},{room:201,type:"RM3"},
+ {room:202,type:"RM2"},{room:203,type:"RM2"},{room:204,type:"RM2"},{room:205,type:"RM2"},
+ {room:206,type:"RM2"},{room:207,type:"RM2"},{room:208,type:"RM2"},{room:209,type:"RM2"},
+ {room:210,type:"RM2"},{room:211,type:"RM2"},{room:212,type:"SU1"},{room:214,type:"RM2"},
+ {room:216,type:"RM2"},{room:218,type:"RM2"},{room:219,type:"RM2"},{room:221,type:"RM2"},
+ {room:222,type:"RM3"},{room:223,type:"RM3"},{room:224,type:"RM2"},{room:225,type:"RM3"},
+ {room:226,type:"RM2"},{room:227,type:"RM3"},{room:228,type:"RM2"},{room:229,type:"RM3"},
+ {room:230,type:"RM2"},{room:231,type:"RM1"},{room:233,type:"RM2"},{room:235,type:"RM2"},
+ {room:237,type:"RM2"},{room:239,type:"RM3"}
+];
+
+const occupancyOpts=["Vacant","Occupied"];
+const guestOpts=["Arrival","Stayover","Departure"];
+const hkOpts=["Dirty","In Progress","Clean","Inspected"];
+const attendants=["Unassigned","Hilda","Johana","Kennedy","Angie","Mayte"];
+let timers={};
+
+function initTable(){
+ const tbody=document.getElementById("roomBody");
+ tbody.innerHTML="";
+ const saved=JSON.parse(localStorage.getItem("hkData"))||[];
+ rooms.forEach((r,idx)=>{
+  const row=document.createElement("tr");
+  const savedRow=saved.find(x=>parseInt(x.room)===r.room);
+  const occVal=savedRow?savedRow.occupancy:"Vacant";
+  const guestVal=savedRow?savedRow.guestStatus:"Arrival";
+  const hkVal=savedRow?savedRow.hkStatus:"Dirty";
+  const attVal=savedRow?savedRow.attendant:"Unassigned";
+  const notesVal=savedRow?savedRow.notes:"";
+  row.innerHTML=`
+    <td>${r.room}</td>
+    <td>${r.type}</td>
+    <td><select class="occSel">${occupancyOpts.map(o=>`<option${o===occVal?' selected':''}>${o}</option>`).join('')}</select></td>
+    <td><select class="guestSel">${guestOpts.map(o=>`<option${o===guestVal?' selected':''}>${o}</option>`).join('')}</select></td>
+    <td><select class="hkSel">${hkOpts.map(o=>`<option${o===hkVal?' selected':''}>${o}</option>`).join('')}</select></td>
+    <td><select class="attSel">${attendants.map(a=>`<option${a===attVal?' selected':''}>${a}</option>`).join('')}</select></td>
+    <td contenteditable="true" class="notes">${notesVal}</td>
+    <td class="timer idle">00:00:00</td>`;
+  tbody.appendChild(row);
+ });
+ attachListeners();
+ updateSummary();
+ updateLastUpdated();
+}
+
+function attachListeners(){
+ document.querySelectorAll(".hkSel").forEach((sel,idx)=>{
+   sel.addEventListener("change",e=>{
+     const val=e.target.value;
+     const tr=e.target.closest("tr");
+     const timerEl=tr.querySelector(".timer");
+     if(val==="In Progress") startTimer(timerEl,idx);
+     else if(["Clean","Inspected"].includes(val)) stopTimer(timerEl,idx);
+     saveData();
+   });
+ });
+ document.querySelectorAll(".occSel, .guestSel, .attSel, .notes").forEach(el=>{
+   el.addEventListener("change", saveData);
+   el.addEventListener("input", saveData);
+ });
+}
+function startTimer(el,idx){
+ if(timers[idx]) return;
+ const start=Date.now();
+ el.classList.add("running");el.classList.remove("idle");
+ timers[idx]=setInterval(()=>{
+  const diff=Date.now()-start;
+  const h=String(Math.floor(diff/3600000)).padStart(2,"0");
+  const m=String(Math.floor((diff%3600000)/60000)).padStart(2,"0");
+  const s=String(Math.floor((diff%60000)/1000)).padStart(2,"0");
+  el.textContent=`${h}:${m}:${s}`;
+ },1000);
+}
+function stopTimer(el,idx){
+ if(!timers[idx]) return;
+ clearInterval(timers[idx]);timers[idx]=null;
+ el.classList.remove("running");el.classList.add("idle");
+}
+function saveData(){
+ const rows=[...document.querySelectorAll("#roomBody tr")];
+ const data=rows.map(r=>({
+   room:r.children[0].innerText,
+   type:r.children[1].innerText,
+   occupancy:r.querySelector(".occSel").value,
+   guestStatus:r.querySelector(".guestSel").value,
+   hkStatus:r.querySelector(".hkSel").value,
+   attendant:r.querySelector(".attSel").value,
+   notes:r.querySelector(".notes").innerText.trim()
+ }));
+ localStorage.setItem("hkData", JSON.stringify(data));
+ updateLastUpdated();
+ updateSummary();
+}
+function updateSummary(){
+ const rows=document.querySelectorAll("#roomBody tr");
+ let arrivals=0,stays=0,deps=0;
+ rows.forEach(r=>{
+   const g=r.querySelector(".guestSel").value;
+   if(g==="Arrival") arrivals++;
+   else if(g==="Stayover") stays++;
+   else if(g==="Departure") deps++;
+ });
+ document.getElementById("summary").textContent=`Total Rooms: ${rows.length} | Arrivals: ${arrivals} | Stayovers: ${stays} | Departures: ${deps}`;
+}
+function updateLastUpdated(){
+ const stamp=new Date().toLocaleString();
+ document.getElementById("lastUpdated").textContent="Last Updated: "+stamp;
+}
+function exportCSV(){
+ const rows=[...document.querySelectorAll("#roomBody tr")];
+ let csv="Room,Type,Occupancy,Guest Status,HK Status,Attendant,Notes\n";
+ rows.forEach(r=>{
+   const room=r.children[0].innerText;
+   const type=r.children[1].innerText;
+   const occ=r.querySelector(".occSel").value;
+   const guest=r.querySelector(".guestSel").value;
+   const hk=r.querySelector(".hkSel").value;
+   const att=r.querySelector(".attSel").value;
+   const notes=r.querySelector(".notes").innerText.replace(/,/g,";");
+   csv+=`${room},${type},${occ},${guest},${hk},${att},${notes}\n`;
+ });
+ const blob=new Blob([csv],{type:"text/csv"});
+ const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="housekeeping_log.csv";a.click();
+}
+window.addEventListener("load",()=>{initTable();});
+</script>
+</body>
+</html>

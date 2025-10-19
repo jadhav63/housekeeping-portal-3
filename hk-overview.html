@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tombstone Grand Hotel – Housekeeper Overview</title>
+<style>
+/* Theme variables */
+:root{
+  --accent:#005ea0;
+  --text:#222;
+  --bg:#fff;
+  --border:#e5e7eb;
+  --arrival:#fff7e6;
+  --stayover:#ecfdf5;
+  --departure:#fef2f2;
+}
+
+html,body{
+  margin:0;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+header{
+  background:var(--accent);
+  color:#fff;
+  padding:12px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+}
+h1{
+  margin:0;
+  font-size:1.4rem;
+}
+#clock{
+  font-weight:600;
+}
+
+/* Navigation bar */
+.tab-bar{
+  background:#e5e7eb;
+  padding:8px 20px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.tab-bar a{
+  background:var(--accent);
+  color:#fff;
+  padding:6px 10px;
+  border-radius:4px;
+  text-decoration:none;
+  font-size:0.9rem;
+}
+.tab-bar a:hover{
+  background:#00447d;
+}
+
+main{
+  padding:10px;
+}
+
+/* Table styles */
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:0.9rem;
+}
+th,td{
+  border:1px solid var(--border);
+  padding:6px;
+  text-align:left;
+}
+th{
+  background:#f3f4f6;
+}
+tr:nth-child(even){
+  background:#fafafa;
+}
+
+@media(max-width:768px){
+  table{font-size:0.8rem;}
+  th,td{padding:4px;}
+  h1{font-size:1.2rem;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Housekeeper Overview</h1>
+  <div id="clock">--:--:--</div>
+</header>
+
+<nav class="tab-bar">
+  <a href="assign-room.html">Assign Room</a>
+  <a href="hk-overview.html">HK Name</a>
+  <a href="master-view.html">Master View</a>
+  <a href="index.html">Housekeeping Login</a>
+  <a href="index.html">Main Page</a>
+</nav>
+
+<main>
+  <h2>Assignments by Housekeeper</h2>
+  <table id="hkTable">
+    <thead>
+      <tr>
+        <th>Attendant</th>
+        <th>Room</th>
+        <th>Type</th>
+        <th>Occupancy</th>
+        <th>Guest Status</th>
+        <th>HK Status</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody id="hkBody"></tbody>
+  </table>
+</main>
+
+<script>
+/* Clock update */
+function updateClock(){
+  const now=new Date();
+  const h=String(now.getHours()).padStart(2,"0");
+  const m=String(now.getMinutes()).padStart(2,"0");
+  const s=String(now.getSeconds()).padStart(2,"0");
+  document.getElementById("clock").textContent=`${h}:${m}:${s}`;
+}
+setInterval(updateClock,1000);
+updateClock();
+
+/* Load data from localStorage and render table */
+function loadAssignments(){
+  const data=JSON.parse(localStorage.getItem('hkData'))||[];
+  // Sort by attendant name then by room number
+  data.sort((a,b)=>{
+    if(a.attendant===b.attendant){
+      return parseInt(a.room)-parseInt(b.room);
+    }
+    return a.attendant.localeCompare(b.attendant);
+  });
+  const tbody=document.getElementById('hkBody');
+  tbody.innerHTML='';
+  data.forEach(item=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=
+      `<td>${item.attendant}</td>`+
+      `<td>${item.room}</td>`+
+      `<td>${item.type}</td>`+
+      `<td>${item.occupancy}</td>`+
+      `<td>${item.guestStatus}</td>`+
+      `<td>${item.hkStatus}</td>`+
+      `<td>${item.notes || ''}</td>`;
+    // Apply guest status background color for quick visual cues
+    if(/arrival/i.test(item.guestStatus)) tr.classList.add('status-arrival');
+    if(/stay/i.test(item.guestStatus)) tr.classList.add('status-stay');
+    if(/depart/i.test(item.guestStatus)) tr.classList.add('status-depart');
+    tbody.appendChild(tr);
+  });
+}
+
+window.addEventListener('load', loadAssignments);
+</script>
+</body>
+</html>

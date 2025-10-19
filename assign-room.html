@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tombstone Grand Hotel – Assign Rooms</title>
+<style>
+:root{
+ --accent:#005ea0;--text:#222;--bg:#fff;--border:#e5e7eb;
+ --running:#22c55e;--idle:#9ca3af;
+ --arrival:#fff7e6;--stayover:#ecfdf5;--departure:#fef2f2;
+}
+html,body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);}
+header{background:var(--accent);color:#fff;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;}
+h1{margin:0;font-size:1.4rem;}#clock{font-weight:600;}
+/* Tab bar */
+.tab-bar{background:#e5e7eb;padding:8px 20px;display:flex;flex-wrap:wrap;gap:8px;}
+.tab-bar a{background:var(--accent);color:#fff;padding:6px 10px;border-radius:4px;text-decoration:none;font-size:0.9rem;}
+.tab-bar a:hover{background:#00447d;}
+main{padding:10px;}
+table{width:100%;border-collapse:collapse;font-size:0.9rem;}
+th,td{border:1px solid var(--border);padding:6px;text-align:left;}
+th{background:#f3f4f6;}
+@media(max-width:768px){table{font-size:0.8rem;}th,td{padding:4px;}h1{font-size:1.2rem;}}
+</style>
+</head>
+<body>
+<header>
+ <h1>Assign Rooms</h1>
+ <div id="clock">--:--:--</div>
+</header>
+<nav class="tab-bar">
+  <a href="assign-room.html">Assign Room</a>
+  <a href="hk-overview.html">HK Name</a>
+  <a href="master-view.html">Master View</a>
+  <a href="index.html">Housekeeping Login</a>
+  <a href="index.html">Main Page</a>
+</nav>
+<main>
+ <table id="assignTable">
+   <thead>
+     <tr>
+       <th>Room</th>
+       <th>Type</th>
+       <th>Occupancy</th>
+       <th>Guest Status</th>
+       <th>HK Status</th>
+       <th>Assigned To</th>
+       <th>Notes</th>
+     </tr>
+   </thead>
+   <tbody id="assignBody"></tbody>
+ </table>
+</main>
+<script>
+/* Clock */
+function updateClock(){const now=new Date();const h=String(now.getHours()).padStart(2,"0");const m=String(now.getMinutes()).padStart(2,"0");const s=String(now.getSeconds()).padStart(2,"0");document.getElementById("clock").textContent=`${h}:${m}:${s}`;}setInterval(updateClock,1000);updateClock();
+
+/* Data */
+const rooms=[
+ {room:100,type:"RM2"},{room:101,type:"RM3"},{room:102,type:"RM2"},{room:103,type:"RM2"},
+ {room:104,type:"RM2"},{room:105,type:"AC3"},{room:106,type:"RM2"},{room:107,type:"RM2"},
+ {room:108,type:"RM2"},{room:109,type:"RM2"},{room:110,type:"RM2"},{room:111,type:"RM2"},
+ {room:116,type:"AC1"},{room:118,type:"RM2"},{room:119,type:"RM2"},{room:120,type:"RM2"},
+ {room:121,type:"RM3"},{room:122,type:"RM2"},{room:123,type:"RM3"},{room:125,type:"RM3"},
+ {room:127,type:"RM3"},{room:129,type:"RM2"},{room:131,type:"RM2"},{room:133,type:"AC2"},
+ {room:135,type:"AC2"},{room:137,type:"RM1"},{room:200,type:"RM2"},{room:201,type:"RM3"},
+ {room:202,type:"RM2"},{room:203,type:"RM2"},{room:204,type:"RM2"},{room:205,type:"RM2"},
+ {room:206,type:"RM2"},{room:207,type:"RM2"},{room:208,type:"RM2"},{room:209,type:"RM2"},
+ {room:210,type:"RM2"},{room:211,type:"RM2"},{room:212,type:"SU1"},{room:214,type:"RM2"},
+ {room:216,type:"RM2"},{room:218,type:"RM2"},{room:219,type:"RM2"},{room:221,type:"RM2"},
+ {room:222,type:"RM3"},{room:223,type:"RM3"},{room:224,type:"RM2"},{room:225,type:"RM3"},
+ {room:226,type:"RM2"},{room:227,type:"RM3"},{room:228,type:"RM2"},{room:229,type:"RM3"},
+ {room:230,type:"RM2"},{room:231,type:"RM1"},{room:233,type:"RM2"},{room:235,type:"RM2"},
+ {room:237,type:"RM2"},{room:239,type:"RM3"}
+];
+const occupancyOpts=["Vacant","Occupied"];
+const guestOpts=["Arrival","Stayover","Departure"];
+const hkOpts=["Dirty","In Progress","Clean","Inspected"];
+const attendants=["Unassigned","Hilda","Johana","Kennedy","Angie","Mayte"];
+
+function initAssign(){
+ const tbody=document.getElementById('assignBody');
+ tbody.innerHTML='';
+ const saved=JSON.parse(localStorage.getItem('hkData'))||[];
+ rooms.forEach(r=>{
+  const rowData=saved.find(d=>parseInt(d.room)===r.room) || {room:r.room,type:r.type,occupancy:"Vacant",guestStatus:"Arrival",hkStatus:"Dirty",attendant:"Unassigned",notes:""};
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td>${r.room}</td><td>${r.type}</td><td><select class='occSel'>${occupancyOpts.map(o=>`<option${o===rowData.occupancy?' selected':''}>${o}</option>`).join('')}</select></td><td><select class='guestSel'>${guestOpts.map(o=>`<option${o===rowData.guestStatus?' selected':''}>${o}</option>`).join('')}</select></td><td><select class='hkSel'>${hkOpts.map(o=>`<option${o===rowData.hkStatus?' selected':''}>${o}</option>`).join('')}</select></td><td><select class='attSel'>${attendants.map(a=>`<option${a===rowData.attendant?' selected':''}>${a}</option>`).join('')}</select></td><td contenteditable='true' class='notes'>${rowData.notes}</td>`;
+  tbody.appendChild(tr);
+ });
+ attachAssignListeners();
+}
+
+function attachAssignListeners(){
+ document.querySelectorAll('.occSel, .guestSel, .hkSel, .attSel, .notes').forEach(el=>{
+   el.addEventListener('change', saveAssign);
+   el.addEventListener('input', saveAssign);
+ });
+}
+
+function saveAssign(){
+ const rows=[...document.querySelectorAll('#assignBody tr')];
+ const data=rows.map(r=>({
+   room:r.children[0].innerText,
+   type:r.children[1].innerText,
+   occupancy:r.querySelector('.occSel').value,
+   guestStatus:r.querySelector('.guestSel').value,
+   hkStatus:r.querySelector('.hkSel').value,
+   attendant:r.querySelector('.attSel').value,
+   notes:r.querySelector('.notes').innerText.trim()
+ }));
+ localStorage.setItem('hkData', JSON.stringify(data));
+}
+
+window.addEventListener('load', initAssign);
+</script>
+</body>
+</html>
